@@ -3,3 +3,8 @@ __pycache__/
 *.pyc
 venv/
 .env
+sales_training.db
+student_data.json
+audio/
+*.mp3
+Thumbs.db
