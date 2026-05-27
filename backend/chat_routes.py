@@ -36,7 +36,7 @@ def chat(user_message: ChatRequest):
         from ai_logic.rag import search
         from ai_logic.llm import get_llm_response
         from ai_logic.chatbot import get_response
-        from voice.text_to_speech import convert_text_to_speech
+        from text_to_speech import convert_text_to_speech
 
         # ✅ Extract fields
         message          = user_message.message
