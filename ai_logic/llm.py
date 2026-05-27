@@ -4,14 +4,19 @@ from groq import Groq
 
 load_dotenv()
 
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-GROQ_MODEL   = "llama-3.1-8b-instant"
+def get_client():
+    key = os.getenv("GROQ_API_KEY", "")
+    if key:
+        return Groq(api_key=key)
+    return None
 
-if GROQ_API_KEY:
-    client = Groq(api_key=GROQ_API_KEY)
+# ✅ Always fetch fresh from environment
+client = get_client()
+GROQ_MODEL = "llama-3.1-8b-instant"
+
+if client:
     print("✅ LLM ready")
 else:
-    client = None
     print("⚠️ No API key")
 
 def get_llm_response(user_message, retrieved_text, persona, history):
