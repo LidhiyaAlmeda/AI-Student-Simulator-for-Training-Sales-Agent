@@ -18,7 +18,7 @@ def evaluate(session_id: str, mode: str = "recent"):
     
     try:
         from database import get_conversation, save_feedback
-        from feedback.evaluator import evaluate_conversation
+        from evaluator import evaluate_conversation
 
         # ✅ Get limit based on mode
         if mode in ("full", "summary"):
