@@ -16,7 +16,7 @@ def get_ai_response(message: str, persona: str, course: str, session_id: str = "
             f"{BASE_URL}/chat/",
             json={
                 "message": message,
-                "persona": persona["name"] if isinstance(persona, dict) else persona,
+                "persona": persona["name"] if isinstance(persona, dict) else {"name": persona, "behavior": "", "difficulty": ""},
                 "course": course,
                 "session_id": session_id
             },
