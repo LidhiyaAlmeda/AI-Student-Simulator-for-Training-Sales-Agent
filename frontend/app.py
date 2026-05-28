@@ -246,9 +246,10 @@ elif st.session_state.page == "chat":
 
         try:
             response = get_ai_response(
-                user_input,
-                PERSONAS[st.session_state.p],
-                st.session_state.history
+                message    = user_input,
+                persona    = PERSONAS[st.session_state.p],
+                course     = st.session_state.c,
+                session_id = st.session_state.candidate_name
             )
         except Exception as e:
             response = f"AI ERROR: {e}"
