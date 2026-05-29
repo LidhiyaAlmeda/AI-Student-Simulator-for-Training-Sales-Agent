@@ -22,13 +22,11 @@ def get_ai_response(message: str, persona: str, course: str, session_id: str = "
             },
             timeout=120
         )
-        return response.json()
+        data = response.json()
+        return data.get("response", data.get("error", "No response"))
 
     except Exception as e:
-        return {
-            "error": str(e),
-            "response": "Backend connection failed"
-        }
+        return f"Backend connection failed: {e}" 
 
 def get_evaluation(session_id: str, mode: str = "full"):
     try:
