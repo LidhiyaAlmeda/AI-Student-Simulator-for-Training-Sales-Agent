@@ -39,7 +39,7 @@ app.include_router(chat_router,     prefix="/chat",     tags=["Chat"])
 app.include_router(feedback_router, prefix="/feedback", tags=["Feedback"])
 app.include_router(voice_router,    prefix="/voice",    tags=["Voice"])
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 def home():
     return {"message": "Backend is running successfully"}
 
@@ -48,3 +48,12 @@ def reset(session_id: str):
     from database import clear_conversation
     clear_conversation(session_id)
     return {"message": "Conversation reset successfully", "session_id": session_id}
+    
+
+@app.put("/session/rename/{session_id}")
+def rename_chat(session_id: str, data: dict):
+    rename_session(session_id, data["title"])
+
+    return {
+        "status": "success"
+    }
