@@ -136,11 +136,10 @@ def autoplay_audio_from_url(audio_url: str):
     try:
         r = requests.get(f"{BACKEND_URL}{audio_url}")
         if r.status_code == 200:
-            b64 = base64.b64encode(r.content).decode("utf-8")
-            st.markdown(
-                f'<audio autoplay style="display:none"><source src="data:audio/mp3;base64,{b64}" type="audio/mp3"></audio>',
-                unsafe_allow_html=True
-            )
+            st.audio(r.content, format="audio/mp3", autoplay=TRUE)
+        else:
+            st.error(f"Audio fetch failed: {r.status_code}")
+            
     except Exception as e:
         st.warning(f"Audio playback error: {e}")
 
