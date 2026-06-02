@@ -33,6 +33,16 @@ def create_tables():
         )
     """)
 
+    # ✅ Session metadata table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS sessions (
+            session_id TEXT PRIMARY KEY,
+            title TEXT,
+            created_at TEXT,
+            updated_at TEXT
+        )
+    """)
+
     # ✅ Feedback table for evaluation results
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS feedback (
@@ -51,30 +61,73 @@ def create_tables():
     conn.close()
     print("✅ Database tables ready")
 
-def get_all_sessions():
-    """Get all unique sessions with metadata for session picker"""
+def create_session(session_id: str, title: str):
     conn = create_connection()
     cursor = conn.cursor()
+
     cursor.execute("""
-        SELECT session_id, persona, course,
-               MIN(timestamp) as started_at,
-               COUNT(*) as turns
-        FROM conversations
-        GROUP BY session_id
-        ORDER BY started_at DESC
+        INSERT OR IGNORE INTO sessions
+        (session_id, title, created_at, updated_at)
+        VALUES (?, ?, ?, ?)
+    """, (
+        session_id,
+        title,
+        ist_now(),
+        ist_now()
+    ))
+
+    conn.commit()
+    conn.close()
+
+def update_session_timestamp(session_id: str):
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE sessions
+        SET updated_at = ?
+        WHERE session_id = ?
+    """, (ist_now(), session_id))
+
+    conn.commit()
+    conn.close()
+
+def rename_session(session_id: str, new_title: str):
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE sessions
+        SET title = ?
+        WHERE session_id = ?
+    """, (new_title, session_id))
+
+    conn.commit()
+    conn.close()
+
+def get_all_sessions():
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT *
+        FROM sessions
+        ORDER BY updated_at DESC
     """)
+
     rows = cursor.fetchall()
     conn.close()
+
     return [
         {
             "session_id": row["session_id"],
-            "persona":    row["persona"],
-            "course":     row["course"],
-            "started_at": row["started_at"],
-            "turns":      row["turns"]
+            "title": row["title"],
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"]
         }
         for row in rows
-    ]                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+    ]
+                                                                                                                                                                                                                                                                                                                                                                                                                                                       
 
 def get_conversation(session_id: str, limit: int = 999):
     """Get last N conversation turns"""
@@ -116,6 +169,7 @@ def save_conversation(
     """, (session_id, salesperson_msg, student_msg, persona, course, ist_now()))
 
     conn.commit()
+    update_session_timestamp(session_id)
     conn.close()
 
 
