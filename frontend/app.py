@@ -136,7 +136,8 @@ def autoplay_audio_from_url(audio_url: str):
     try:
         r = requests.get(f"{BACKEND_URL}{audio_url}")
         if r.status_code == 200:
-            st.audio(r.content, format="audio/mp3", autoplay=TRUE)
+            audio_bytes = r.content
+            st.audio(r.content, format="audio/mp3", autoplay=True)
         else:
             st.error(f"Audio fetch failed: {r.status_code}")
             
