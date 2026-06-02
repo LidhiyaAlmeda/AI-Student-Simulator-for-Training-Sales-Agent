@@ -1,6 +1,4 @@
-# =========================================================
-# 1. SYSTEM PATH SETTINGS (MUST BE AT THE VERY TOP)
-# =========================================================
+import requests
 import os
 import sys
 
@@ -15,9 +13,7 @@ if abs_path not in sys.path:
 import streamlit as st
 import json
 import datetime
-import tempfile
 import base64
-from gtts import gTTS
 from streamlit_mic_recorder import speech_to_text
 
 # =========================================================
@@ -136,20 +132,31 @@ def autoplay_audio(text):
     if not text:
         return
     try:
-        tts = gTTS(text=text, lang="en")
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as fp:
-            tts.save(fp.name)
-        audio_bytes = open(fp.name, "rb").read()
-        # Convert to base64 and use HTML autoplay
-        audio_b64 = base64.b64encode(audio_bytes).decode()
-        audio_html = f"""
-            <audio autoplay>
-                <source src="data:audio/mp3;base64,{audio_b64}" type="audio/mp3">
-            </audio>
-        """
-        st.markdown(audio_html, unsafe_allow_html=True)
+        tts_resp = requests.post(
+            f"{BACKEND_URL}/voice/tts",
+            json={"text": text},
+            timeout=15
+        )
+        if tts_resp.status_code != 200:
+            return
+        
+        data = tts_resp.json()
+        if "error" in data or not data.get("audio_url"):
+            return
+
+        audio_resp = requests.get(
+            f"{BACKEND_URL}{data['audio_url']}",
+            timeout=15
+        )
+        if audio_resp.status_code != 200:
+            return
+
+        # Step 3: Store base64 in session state for next render
+        audio_b64 = base64.b64encode(audio_resp.content).decode()
+        st.session_state.pending_audio = audio_b64
+
     except Exception as e:
-        st.error(f"AI Voice Error: {e}")
+        st.error(f"Audio Error: {e}")
 
 # =========================================================
 # SAVE HISTORY
@@ -196,6 +203,14 @@ if st.session_state.page == "config":
 # =========================================================
 # CHAT PAGE
 # =========================================================
+if st.session_state.get("pending_audio"):
+    st.markdown(f"""
+        <audio autoplay>
+            <source src="data:audio/mp3;base64,{st.session_state.pending_audio}" type="audio/mp3">
+        </audio>
+    """, unsafe_allow_html=True)
+    st.session_state.pending_audio = None
+
 elif st.session_state.page == "chat":
     st.title(f"Training: {st.session_state.p} | Course: {st.session_state.c}")
     st.markdown("---")
