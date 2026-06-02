@@ -26,7 +26,7 @@ _mod = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_mod)
 
 get_ai_response = _mod.get_ai_response
-get_final_feedback = _mod.get_evaluation
+get_evaluation = _mod.get_evaluation
 
 _pc_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "persona_config.py")
 _spec2 = importlib.util.spec_from_file_location("persona_config", _pc_path)
@@ -35,7 +35,6 @@ _spec2.loader.exec_module(_mod2)
 
 PERSONAS = _mod2.PERSONAS
 COURSES = _mod2.COURSES
-
 
 # =========================================================
 # PAGE CONFIG
@@ -103,7 +102,6 @@ input, textarea {
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 logo_path = os.path.join(BASE_DIR, "Frontend", "rp2_logo.png")
-avatar_path = os.path.join(BASE_DIR, "Frontend", "ai_avatar.png")
 history_path = os.path.join(BASE_DIR, "chat_histories")
 
 # =========================================================
@@ -173,10 +171,22 @@ with st.sidebar:
         st.image(logo_path, width=220)
 
     # =========================
+    # NEW CHAT BUTTON
+    # =========================
+
+    if st.button("New Chat"):
+        st.session_state.messages = []
+        st.session_state.session_id = ""
+        st.session_state.page = "config"
+        st.rerun()
+
+    st.markdown("---")
+
+    # =========================
     # CHAT HISTORY
     # =========================
 
-    st.markdown("## 💬 Chat History")
+    st.markdown("## Chat History")
 
     try:
 
@@ -273,25 +283,15 @@ with st.sidebar:
                 st.error(f"Rename Error: {e}")
 
     st.markdown("---")
-# =========================
-    # NEW CHAT BUTTON
-    # =========================
-
-    if st.button("➕ New Chat"):
-        st.session_state.messages = []
-        st.session_state.session_id = ""
-        st.session_state.page = "config"
-        st.rerun()
-
-    st.markdown("---")
 
 # =========================
     # ADMIN BUTTON
     # =========================
 
-    if st.button("Admin Dashboard 🔐"):
+    if st.button("Admin Dashboard"):
         st.session_state.page = "admin"
         st.rerun()
+
 # =========================================================
 # SAVE HISTORY
 # =========================================================
@@ -314,7 +314,7 @@ if st.session_state.page == "config":
     st.session_state.p = st.selectbox("Select Persona:", list(PERSONAS.keys()))
     st.session_state.c = st.selectbox("Choose Training Course:", COURSES)
 
-    if st.button("Start Training Session 🚀"):
+    if st.button("Start Training Session"):
         if not st.session_state.candidate_name.strip():
             st.warning("Please enter candidate name")
         else:
@@ -364,7 +364,7 @@ elif st.session_state.page == "chat":
 
     col1, col2 = st.columns(2)
     with col1:
-        send_btn = st.button("Send Message 📩")
+        send_btn = st.button("Send Message")
     with col2:
         end_btn = st.button("End Session & Get Feedback")
 
