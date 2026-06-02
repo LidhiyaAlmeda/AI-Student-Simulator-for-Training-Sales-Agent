@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from b_config import USE_LLM
+from database import create_session
 import random
 import string
 
@@ -43,8 +44,17 @@ def chat(user_message: ChatRequest):
         selected_persona = user_message.persona
         selected_course  = user_message.course
 
-        # ✅ Generate session_id if not provided
-        session_id = user_message.session_id or generate_session_id()
+        # ✅ Create NEW session if first chat
+        if not user_message.session_id:
+
+            session_id = generate_session_id()
+
+            # Auto-create sidebar title
+            title = message[:30]
+
+            create_session(session_id, title)
+        else:
+            session_id = user_message.session_id
 
         # ✅ Validate inputs
         if not message:
