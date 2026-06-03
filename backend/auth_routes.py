@@ -14,44 +14,42 @@ class LoginRequest(BaseModel):
     email: str
     password: str
 
-
 @router.post("/register")
-def register(data: RegisterRequest):
+def register(data: dict):
 
-    if data.email in users:
+    try:
+        create_user(
+            data["name"],
+            data["email"],
+            data["password"]
+        )
+
         return {
-            "success": False,
-            "message": "Email already exists"
+            "success": True
         }
 
-    users[data.email] = {
-        "name": data.name,
-        "password": data.password
-    }
-
-    return {
-        "success": True
-    }
-
+    except Exception as e:
+        return {
+            "success": False,
+            "message": str(e)
+        }
 
 @router.post("/login")
-def login(data: LoginRequest):
+def login(data: dict):
 
-    user = users.get(data.email)
+    user = get_user(
+        data["email"],
+        data["password"]
+    )
 
     if not user:
         return {
             "success": False,
-            "message": "User not found"
-        }
-
-    if user["password"] != data.password:
-        return {
-            "success": False,
-            "message": "Wrong password"
+            "message": "Invalid credentials"
         }
 
     return {
         "success": True,
-        "name": user["name"]
+        "name": user["name"],
+        "email": user["email"]
     }
