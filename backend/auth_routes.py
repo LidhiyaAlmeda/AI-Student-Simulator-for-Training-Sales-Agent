@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-from database import get_user, create_user
+from database import get_user, create_user, update_password
 
 router = APIRouter()
 
@@ -14,6 +14,10 @@ class RegisterRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: str
     password: str
+
+class ResetPasswordRequest(BaseModel):
+    email: str
+    new_password: str
 
 @router.post("/register")
 def register(data: dict):
@@ -54,4 +58,23 @@ def login(data: dict):
         "user_id": user["id"],
         "name": user["name"],
         "email": user["email"]
+    }
+
+@router.post("/reset-password")
+def reset_password(data: ResetPasswordRequest):
+
+    updated = update_password(
+        data.email,
+        data.new_password
+    )
+
+    if not updated:
+        return {
+            "success": False,
+            "message": "Email not found"
+        }
+
+    return {
+        "success": True,
+        "message": "Password updated"
     }
