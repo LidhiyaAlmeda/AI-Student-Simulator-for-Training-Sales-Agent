@@ -498,7 +498,7 @@ if st.session_state.page == "landing":
                 if result.get("success"):
                     st.session_state.authenticated = True
                     st.session_state.user_name = result["name"]
-                    st.session_state.user_id = result["user_id"]
+                    st.session_state.user_id = result.get("user_id")
                     st.session_state.page = "dashboard"
                     st.rerun()
                 else:
