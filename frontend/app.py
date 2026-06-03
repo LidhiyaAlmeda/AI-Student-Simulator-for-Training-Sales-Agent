@@ -505,11 +505,56 @@ if st.session_state.page == "landing":
                     st.error(result["message"])
  
         st.markdown("<hr style='border-color:#ddd;margin:1rem 0'>", unsafe_allow_html=True)
+
+        if st.button("Forgot Password?"):
+            st.session_state.page = "forgot_password"
+            st.rerun()
  
         if st.button("Don't Have An Account? Sign Up", key="btn_goto_signup"):
             st.session_state.page = "signup"
             st.rerun()
-  
+
+# FORGOT PASSWORD
+elif st.session_state.page == "forgot_password":
+
+    st.title("Reset Password")
+
+    email = st.text_input("Registered Email")
+    new_password = st.text_input(
+        "New Password",
+        type="password"
+    )
+
+    confirm_password = st.text_input(
+        "Confirm Password",
+        type="password"
+    )
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        if st.button("Reset Password"):
+
+            if new_password != confirm_password:
+                st.error("Passwords do not match")
+
+            else:
+                result = reset_password(
+                    email,
+                    new_password
+                )
+
+                if result.get("success"):
+                    st.success("Password updated successfully")
+                    st.session_state.page = "landing"
+                    st.rerun()
+                else:
+                    st.error(result.get("message"))
+
+    with col2:
+        if st.button("Back"):
+            st.session_state.page = "landing"
+            st.rerun()
 # =========================================================
 # SIGNUP PAGE
 # =========================================================
