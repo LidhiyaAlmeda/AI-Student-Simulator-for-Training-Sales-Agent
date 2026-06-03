@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from chat_routes import router as chat_router
+from auth_routes import router as auth_router
 from feedback_routes import router as feedback_router
 from voice_routes import router as voice_router
 from database import create_tables
@@ -38,6 +39,7 @@ app.add_middleware(
 app.include_router(chat_router,     prefix="/chat",     tags=["Chat"])
 app.include_router(feedback_router, prefix="/feedback", tags=["Feedback"])
 app.include_router(voice_router,    prefix="/voice",    tags=["Voice"])
+app.include_router(auth_router,     prefix="/auth",     tags=["Auth"])
 
 @app.api_route("/", methods=["GET", "HEAD"])
 def home():
