@@ -55,6 +55,24 @@ st.set_page_config(
 # =========================================================
 st.markdown("""
 <style>
+
+/* ── HIDE STREAMLIT TOP TOOLBAR & HEADER ── */
+header[data-testid="stHeader"] {
+    display: none !important;
+}
+#MainMenu {
+    display: none !important;
+}
+footer {
+    display: none !important;
+}
+[data-testid="stToolbar"] {
+    display: none !important;
+}
+[data-testid="stDecoration"] {
+    display: none !important;
+}
+
 /* BACKGROUND */
 .stApp {
     background: linear-gradient(135deg, #0f2027, #203a43, #2c5364) !important;
@@ -383,23 +401,40 @@ if st.session_state.page == "landing":
             )
     with col2:
         if st.button("Admin", key="btn_admin_landing"):
-            st.session_state.show_admin_login = True
+            st.session_state.show_admin_login = not st.session_state.get("show_admin_login", False)
+
+    st.markdown("---")
  
-    # Admin password popup — shown directly below header when triggered
+    # ── ADMIN POPUP — rendered AFTER the divider, outside all column contexts ──
     if st.session_state.get("show_admin_login"):
-        with st.container():
+        # Use columns to constrain width: empty | popup | empty
+        _, popup_col, _ = st.columns([3, 2, 3])
+        with popup_col:
             st.markdown("""
-            <div style="background:white;padding:20px 24px;border-radius:14px;
-                        border:1.5px solid #4facfe;max-width:340px;margin:8px 0 0 0;">
-                <p style="color:#111;font-weight:700;font-size:16px;margin:0 0 12px">
-                    Admin Access
+            <div style="
+                background: white;
+                border-radius: 14px;
+                border: 2px solid #4facfe;
+                padding: 24px 28px 16px 28px;
+                margin-bottom: 12px;
+            ">
+                <p style="color:#111;font-weight:800;font-size:18px;margin:0 0 4px 0;">
+                    🛡️ Admin Access
+                </p>
+                <p style="color:#555;font-size:13px;margin:0 0 16px 0;">
+                    Enter your admin password to continue.
                 </p>
             </div>
             """, unsafe_allow_html=True)
+ 
             admin_pass = st.text_input(
-                "Admin Password", type="password", key="admin_pass_input",
-                placeholder="Enter admin password"
+                "Admin Password",
+                type="password",
+                key="admin_pass_input",
+                placeholder="Enter admin password",
+                label_visibility="collapsed"
             )
+            
             c1, c2 = st.columns(2)
             with c1:
                 if st.button("Enter", key="btn_admin_enter"):
