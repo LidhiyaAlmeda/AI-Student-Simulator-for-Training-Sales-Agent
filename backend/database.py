@@ -20,6 +20,16 @@ def create_tables():
     conn = create_connection()
     cursor = conn.cursor()
 
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        created_at TEXT
+    )
+    """)
+
     # ✅ Conversations table with all needed columns
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS conversations (
@@ -228,3 +238,41 @@ def get_feedback_history(session_id: str):
         }
         for row in rows
     ]
+
+def create_user(name, email, password):
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO users
+        (name, email, password, created_at)
+        VALUES (?, ?, ?, ?)
+    """, (
+        name,
+        email,
+        password,
+        ist_now()
+    ))
+
+    conn.commit()
+    conn.close()
+
+def get_user(email, password):
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT *
+        FROM users
+        WHERE email = ?
+        AND password = ?
+    """, (
+        email,
+        password
+    ))
+
+    user = cursor.fetchone()
+
+    conn.close()
+
+    return user
