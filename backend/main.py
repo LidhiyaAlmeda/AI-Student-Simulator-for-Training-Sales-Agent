@@ -11,7 +11,7 @@ from chat_routes import router as chat_router
 from auth_routes import router as auth_router
 from feedback_routes import router as feedback_router
 from voice_routes import router as voice_router
-from database import create_tables
+from database import create_tables, rename_session
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
