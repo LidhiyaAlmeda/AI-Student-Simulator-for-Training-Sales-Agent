@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
+from database import get_user
 
 router = APIRouter()
 
