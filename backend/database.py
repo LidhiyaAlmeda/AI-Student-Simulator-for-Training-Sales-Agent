@@ -276,3 +276,25 @@ def get_user(email, password):
     conn.close()
 
     return user
+
+def update_password(email, new_password):
+
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE users
+        SET password = ?
+        WHERE email = ?
+    """, (
+        new_password,
+        email
+    ))
+
+    conn.commit()
+
+    updated = cursor.rowcount
+
+    conn.close()
+
+    return updated > 0
