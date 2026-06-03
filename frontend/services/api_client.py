@@ -53,7 +53,7 @@ def rename_chat_session(session_id: str, title: str):
 def register_user(name, email, password):
 
     response = requests.post(
-        f"{BASE_URL}/auth/register",
+        f"{BACKEND_URL}/auth/register",
         json={
             "name": name,
             "email": email,
@@ -66,7 +66,7 @@ def register_user(name, email, password):
 def login_user(email, password):
 
     response = requests.post(
-        f"{BASE_URL}/auth/login",
+        f"{BACKEND_URL}/auth/login",
         json={
             "email": email,
             "password": password
