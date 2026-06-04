@@ -31,6 +31,7 @@ reset_conversation = _mod.reset_conversation
 get_all_sessions = _mod.get_all_sessions
 get_session_conversation = _mod.get_session_conversation
 rename_chat_session = _mod.rename_chat_session
+get_user_sessions = _mod.get_user_sessions
 
 _pc_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "persona_config.py")
 _spec2 = importlib.util.spec_from_file_location("persona_config", _pc_path)
@@ -256,8 +257,11 @@ def autoplay_audio_from_url(audio_url: str):
     try:
         r = requests.get(f"{BACKEND_URL}{audio_url}")
         if r.status_code == 200:
-            audio_bytes = r.content
-            st.audio(r.content, format="audio/mp3", autoplay=True)
+            b64 = base64.b64encode(r.content).decode("utf-8")
+            st.markdown(
+                f'<audio autoplay style="display:none"><source src="data:audio/mp3;base64,{b64}" type="audio/mp3"></audio>',
+                unsafe_allow_html=True
+            )    
         else:
             st.error(f"Audio fetch failed: {r.status_code}")
             
@@ -295,6 +299,17 @@ def save_chat_history():
         }, f, indent=4)
 
 # =================================================
+# RESET PASSWORD
+# =================================================
+
+def reset_password(email, new_password):
+    response = requests.post(
+        f"{BACKEND_URL}/reset-password",
+        json={"email": email, "new_password": new_password}
+    )
+    return response.json()
+
+# =================================================
 # SECURITY CHECK
 # =================================================
 PROTECTED_PAGES = {"dashboard", "chat", "admin"}
@@ -323,14 +338,14 @@ if (st.session_state.authenticated and st.session_state.page in ["dashboard", "c
         st.markdown("## Chat History")
  
         try:
-            sessions = get_all_sessions()
+            sessions = get_user_sessions(st.session_state.user_id)
             if sessions:
                 for s in sessions:
                     col1, col2 = st.columns([4, 1])
                     with col1:
                         title = s.get("title", "New Session")
                         if st.button(title, key=f"load_{s['session_id']}"):
-                            history = get_session_conversation(s["session_id"])
+                            history = get_session_conversation(s["session_id"], st.session_state.user_id)
                             st.session_state.messages = []
                             for turn in history:
                                 st.session_state.messages.append({
@@ -410,19 +425,8 @@ if st.session_state.page == "landing":
     # ── ADMIN POPUP — rendered AFTER the divider, outside all column contexts ──
     if st.session_state.get("show_admin_login"):
         # Use columns to constrain width: empty | popup | empty
-        _, popup_col, _ = st.columns([3, 1])
+        popup_col, _ = st.columns([3, 1])
         with popup_col:
-            st.markdown("""
-            <div style="
-                background: white;
-                border-radius: 14px;
-                border: 2px solid #4facfe;
-                padding: 24px 28px 16px 28px;
-                margin-bottom: 12px;
-            ">
-            </div>
-            """, unsafe_allow_html=True)
- 
             admin_pass = st.text_input(
                 "Admin Password",
                 type="password",
@@ -715,7 +719,8 @@ elif st.session_state.page == "chat":
                 message= user_input,
                 persona    = st.session_state.p,
                 course     = st.session_state.c, 
-                session_id   = st.session_state.session_id
+                session_id   = st.session_state.session_id,
+                user_id    = st.session_state.user_id 
             )
 
             response_text = result.get("response", "Sorry, no response received.")

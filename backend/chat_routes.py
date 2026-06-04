@@ -2,6 +2,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from b_config import USE_LLM
 from database import create_session
+from fastapi import HTTPException
 import random
 import string
 
@@ -17,6 +18,7 @@ class ChatRequest(BaseModel):
     persona:    str = ""
     course:     str = ""
     session_id: str = ""
+    user_id:    int = None
 
 
 def fallback_response(user_input, course, rag_text=None):
@@ -46,13 +48,9 @@ def chat(user_message: ChatRequest):
 
         # ✅ Create NEW session if first chat
         if not user_message.session_id:
-
             session_id = generate_session_id()
-
-            # Auto-create sidebar title
             title = message[:30]
-
-            create_session(session_id, title)
+            create_session(session_id, title, user_message.user_id)
         else:
             session_id = user_message.session_id
 
@@ -65,7 +63,7 @@ def chat(user_message: ChatRequest):
         # ✅ Get THIS student's history
         conversation_history = get_conversation(session_id)
 
-        
+    
         # 🔍 RAG search
         retrieved_text = search(message)
 
@@ -115,13 +113,42 @@ def chat(user_message: ChatRequest):
         print("Error:", e)
         return {"error": "Something went wrong in the backend"}
     
+
 @router.get("/history/{session_id}")
-def get_chat_history(session_id: str):
-    """Return full conversation history for a session"""
+def get_chat_history(session_id: str, user_id: int):
     try:
-        from database import get_conversation
-        history = get_conversation(session_id=session_id, limit=999)
-        return {"session_id": session_id, "history": history}
+        from database import (
+            get_conversation,
+            session_belongs_to_user
+        )
+
+        if not session_belongs_to_user(session_id, user_id):
+            raise HTTPException(
+                status_code=403,
+                detail="Access denied"
+            )
+
+        history = get_conversation(
+            session_id=session_id,
+            limit=999
+        )
+
+        return {
+            "session_id": session_id,
+            "history": history
+        }
+
+    except HTTPException:
+        raise
+
     except Exception as e:
         print("History Error:", e)
-        return {"error": "Could not fetch history"}
+        raise HTTPException(
+            status_code=500,
+            detail="Could not fetch history"
+        )
+    
+@router.get("/sessions")
+def get_sessions(user_id: int):
+    from database import get_user_sessions
+    return get_user_sessions(user_id)

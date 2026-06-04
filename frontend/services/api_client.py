@@ -2,12 +2,13 @@ import requests
 
 BACKEND_URL = "https://ai-student-simulator-for-training-sales.onrender.com"
 
-def get_ai_response(message: str, persona: str, course: str, session_id: str = "") -> dict:
+def get_ai_response(message: str, persona: str, course: str, session_id: str = "", user_id: int = None) -> dict:
     payload = {
         "message":    message,
         "persona":    persona,
         "course":     course,
-        "session_id": session_id
+        "session_id": session_id,
+        "user_id":    user_id
     }
     response = requests.post(f"{BACKEND_URL}/chat/", json=payload)
     response.raise_for_status()
@@ -31,52 +32,48 @@ def get_all_sessions() -> list:
     response = requests.get(f"{BACKEND_URL}/feedback/sessions")
     response.raise_for_status()
     return response.json().get("sessions", [])
+
+def get_user_sessions(user_id: int) -> list:
+    """Get sessions for a specific logged-in user"""
+    response = requests.get(
+        f"{BACKEND_URL}/chat/sessions",
+        params={"user_id": user_id}
+    )
+    response.raise_for_status()
+    return response.json()
  
  
-def get_session_conversation(session_id: str) -> list:
+def get_session_conversation(session_id: str, user_id: int) -> list:
     """Get full conversation history for a session"""
-    response = requests.get(f"{BACKEND_URL}/chat/history/{session_id}")
+    response = requests.get(f"{BACKEND_URL}/chat/history/{session_id}", params={"user_id": user_id})
     response.raise_for_status()
     return response.json().get("history", [])
 
 def rename_chat_session(session_id: str, title: str):
-
-    response = requests.put(
-        f"{BACKEND_URL}/session/rename/{session_id}",
-        json={"title": title}
-    )
-
+    response = requests.put(f"{BACKEND_URL}/session/rename/{session_id}", json={"title": title})
     response.raise_for_status()
-
     return response.json()
 
 def register_user(name, email, password):
-
-    response = requests.post(
-        f"{BACKEND_URL}/auth/register",
+    response = requests.post(f"{BACKEND_URL}/auth/register",
         json={
             "name": name,
             "email": email,
             "password": password
         }
     )
-
     return response.json()
 
 def login_user(email, password):
-
-    response = requests.post(
-        f"{BACKEND_URL}/auth/login",
+    response = requests.post(f"{BACKEND_URL}/auth/login",
         json={
             "email": email,
             "password": password
         }
     )
-
     return response.json()
 
 def reset_password(email, new_password):
-
     response = requests.post(
         f"{BACKEND_URL}/auth/reset-password",
         json={
@@ -84,7 +81,5 @@ def reset_password(email, new_password):
             "new_password": new_password
         }
     )
-
     response.raise_for_status()
-
     return response.json()

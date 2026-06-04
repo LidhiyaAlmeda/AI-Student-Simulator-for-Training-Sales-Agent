@@ -47,6 +47,7 @@ def create_tables():
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS sessions (
             session_id TEXT PRIMARY KEY,
+            user_id    INTEGER,
             title TEXT,
             created_at TEXT,
             updated_at TEXT
@@ -67,24 +68,27 @@ def create_tables():
         )
     """)
 
+    try:
+        cursor.execute("ALTER TABLE sessions ADD COLUMN user_id INTEGER")
+        conn.commit()
+        print("✅ Migrated: added user_id to sessions")
+    except Exception:
+        pass  # column already exists, ignore
+
     conn.commit()
     conn.close()
     print("✅ Database tables ready")
 
-def create_session(session_id: str, title: str):
+def create_session(session_id: str, title: str, user_id: int):
     conn = create_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
         INSERT OR IGNORE INTO sessions
-        (session_id, title, created_at, updated_at)
-        VALUES (?, ?, ?, ?)
+        (session_id, user_id, title, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?)
     """, (
-        session_id,
-        title,
-        ist_now(),
-        ist_now()
-    ))
+        session_id, user_id, title, ist_now(), ist_now()))
 
     conn.commit()
     conn.close()
@@ -115,15 +119,16 @@ def rename_session(session_id: str, new_title: str):
     conn.commit()
     conn.close()
 
-def get_all_sessions():
+def get_user_sessions(user_id: int):
     conn = create_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
         SELECT *
         FROM sessions
+        WHERE user_id = ?
         ORDER BY updated_at DESC
-    """)
+    """, (user_id,))
 
     rows = cursor.fetchall()
     conn.close()
@@ -298,3 +303,19 @@ def update_password(email, new_password):
     conn.close()
 
     return updated > 0
+
+def session_belongs_to_user(session_id: str, user_id: int):
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT 1
+        FROM sessions
+        WHERE session_id = ?
+        AND user_id = ?
+    """, (session_id, user_id))
+
+    result = cursor.fetchone()
+    conn.close()
+
+    return result is not None
