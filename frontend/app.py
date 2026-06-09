@@ -35,6 +35,7 @@ rename_chat_session = _mod.rename_chat_session
 get_user_sessions = _mod.get_user_sessions
 get_all_users = _mod.get_all_users
 get_user_dashboard = _mod.get_user_dashboard
+get_course_metrics = _mod.get_course_metrics
 
 _pc_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "persona_config.py")
 _spec2 = importlib.util.spec_from_file_location("persona_config", _pc_path)
@@ -237,6 +238,8 @@ defaults = {
     "history": "",
     "session_id": "",
     "candidate_name": "",
+    "qualification": "12th Pass",
+    "subject": "Science",
     "p": list(PERSONAS.keys())[0] if PERSONAS else "",
     "c": COURSES[0] if COURSES else "",
     "show_feedback": False,
@@ -483,7 +486,7 @@ if st.session_state.page == "landing":
         """, unsafe_allow_html=True)
  
     with right:
-        st.markdown("<h3 style='color:#111;margin-bottom:0.5rem'>Login</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color:#111;margin-bottom:0.5rem'>User Login</h3>", unsafe_allow_html=True)
  
         email    = st.text_input("Email",    key="login_email",    placeholder="you@example.com",  label_visibility="visible")
         password = st.text_input("Password", key="login_password", type="password",                label_visibility="visible")
@@ -621,24 +624,95 @@ elif st.session_state.page == "dashboard":
     col2.metric("Sessions Completed", dashboard["sessions_completed"])
 
     st.markdown("---")
-
-    df = pd.DataFrame(dashboard["performance"])
-
-    if not df.empty:
-            df.columns = ["Session ID", "Score"]
-
-    st.subheader("Performance Trend")
-
-    if not df.empty:
-      st.line_chart(df.set_index("Session ID"))
-    else:
-     st.info("No completed sessions yet.")
     
-    st.subheader("Select Persona")
-    st.session_state.p = st.selectbox("", list(PERSONAS.keys()))
- 
-    st.subheader("Select Course")
-    st.session_state.c = st.selectbox("", COURSES)
+    st.subheader("Course Performance")
+
+    course_metrics = get_course_metrics(user_id)
+
+    if course_metrics:
+        cards_html = """
+        <div style="
+            display:flex;
+            gap:20px;
+            flex-wrap:wrap;
+        ">
+        """
+
+        for item in course_metrics:
+            cards_html += f"""
+            <div style="
+                border:2px solid #D1D5DB;
+                border-radius:10px;
+                padding:18px;
+                min-width:220px;
+            ">
+                <h4>{item['course']}</h4>
+
+                <p>
+                    Sessions: {item['sessions']}
+                </p>
+
+                <p>
+                    Avg: {item['average_score']}%
+                </p>
+            </div>
+            """
+
+        cards_html += "</div>"
+
+        st.markdown(cards_html, unsafe_allow_html=True)
+
+    qualification_options = [
+        "12th Pass",
+        "Diploma",
+        "ITI",
+        "Undergraduate (Pursuing)",
+        "Undergraduate (Completed)",
+        "Postgraduate (Pursuing)",
+        "Postgraduate (Completed)",
+        "Working Professional",
+        "Career Break / Job Seeker"
+    ]
+
+    subject_options = [
+        "Science",
+        "Commerce",
+        "Arts & Humanities",
+        "Computer Science / IT",
+        "Engineering",
+        "Electronics & Communication",
+        "Mechanical Engineering",
+        "Civil Engineering",
+        "Electrical Engineering",
+        "Data Science & AI",
+        "Mathematics & Statistics",
+        "Business Administration",
+        "Finance & Accounting",
+        "Marketing",
+        "Healthcare & Nursing",
+        "Pharmacy",
+        "Life Sciences / Biotechnology",
+        "Education & Teaching",
+        "Law",
+        "Media & Communication",
+        "Hospitality & Tourism",
+        "Design & Architecture",
+        "Other"
+    ]
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.session_state.qualification = st.selectbox("Highest Qualification", qualification_options)
+    with col2:
+        st.session_state.subject = st.selectbox("Academic Background", subject_options)
+
+    st.markdown("### Training Configuration")
+
+    col3, col4 = st.columns(2)
+    with col3:
+        st.session_state.p = st.selectbox("Student Persona", list(PERSONAS.keys()))
+    with col4:
+        st.session_state.c = st.selectbox("Course to Pitch", COURSES)
 
     if st.button("Start Training Session"):
         st.session_state.messages = []
@@ -651,6 +725,12 @@ elif st.session_state.page == "dashboard":
 # =========================================================
 elif st.session_state.page == "chat":
     st.title(f"Training: {st.session_state.p} | Course: {st.session_state.c}")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.info(f"🎓 Qualification\n\n{st.session_state.qualification}")
+    with col2:
+        st.info(f"📚 Academic Background\n\n{st.session_state.subject}")
+
     st.markdown("---")
 
     # SHOW CHAT HISTORY
@@ -734,7 +814,9 @@ elif st.session_state.page == "chat":
             result = get_ai_response(
                 message= user_input,
                 persona    = st.session_state.p,
-                course     = st.session_state.c, 
+                course     = st.session_state.c,
+                qualification=st.session_state.qualification,
+                subject      =st.session_state.subject,
                 session_id   = st.session_state.session_id,
                 user_id    = st.session_state.user_id 
             )
@@ -804,20 +886,6 @@ elif st.session_state.page == "chat":
             except Exception as e:
                 st.error(f"Feedback Error: {e}")
 
-        if st.button("Restart Training"):
-            if st.session_state.session_id:
-                try:
-                    reset_conversation(st.session_state.session_id)
-                except:
-                    pass
-            st.session_state.messages = []
-            st.session_state.session_id = ""
-            st.session_state.history = ""
-            st.session_state.show_feedback = False
-            st.session_state.last_voice_input = ""
-            st.session_state.page = "dashboard"
-            st.rerun()
-
 # =========================================================
 # ADMIN PAGE
 # =========================================================
@@ -849,7 +917,21 @@ elif st.session_state.page == "admin":
 
             selected_user_id = user_options[selected_user_label]
             sessions = get_user_sessions(selected_user_id)
-        
+
+            dashboard = get_user_dashboard(selected_user_id)
+            col_a, col_b = st.columns(2)
+            with col_a:
+                st.metric("Average Score", f"{dashboard['average_score']}%")
+            with col_b:
+                st.metric("Sessions Completed", dashboard["sessions_completed"])
+
+            df = pd.DataFrame(dashboard["performance"])
+            if not df.empty:
+                st.subheader("Performance Growth")
+                st.caption("Running average performance across all completed sessions.")
+                chart_df = df.rename(columns={"session_id": "Session", "growth_score": "Growth Score"})
+                st.line_chart(chart_df.set_index("Session"))
+                
         if not sessions:
             st.warning("No sessions for this user.")
         else:
@@ -869,18 +951,54 @@ elif st.session_state.page == "admin":
                     if history:
                         st.subheader("Conversation History")
                         for turn in history:
-                            st.markdown(f"**Salesperson:** " f"{turn['salesperson']}")
-                            st.markdown(f"**Student:** " f"{turn['student']}")
-                            st.caption(turn["timestamp"])
-                            st.divider()
+                            with st.chat_message("user"):
+                                st.write(turn["salesperson"])
+                            with st.chat_message("assistant"):
+                                st.write(turn["student"])
+                            st.caption(turn["timestamp"])         
                     else:
                             st.warning("No conversation found.")
 
             with col2:
                 if st.button("Evaluate This Session"):
                         eval_result = get_evaluation(selected_session_id, mode="full")
+                        result = eval_result.get("result", {})
                         st.subheader("Evaluation Result")
-                        st.json(eval_result.get("result", {}))
+                        
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                                st.metric("Final Score", f"{result.get('final_score', 0)}%")
+                        with col2:
+                                st.metric("Keyword Score", f"{result.get('keyword_score', 0)}%")
+                        with col3:
+                                st.metric("Tone Score", f"{result.get('tone_score', 0)}%")
+
+                        skills = result.get("skill_scores", {})
+                        if skills:
+                            st.subheader("Skill Breakdown")
+                            skill_df = pd.DataFrame({
+                                "Skill": list(skills.keys()),
+                                "Score": list(skills.values())
+                            })
+                            st.bar_chart(skill_df.set_index("Skill"))
+
+                        strengths = result.get("strengths", [])
+                        if strengths:
+                            st.subheader("Strengths")
+                            for item in strengths:
+                                st.success(item)
+
+                        weaknesses = result.get("weaknesses", [])
+                        if weaknesses:
+                            st.subheader("Areas for Improvement")
+                            for item in weaknesses:
+                                st.warning(item)
+
+                        suggestions = result.get("suggestions", [])
+                        if suggestions:
+                            st.subheader("Suggestions")
+                            for item in suggestions:
+                                st.info(item)
 
     except Exception as e:
         st.error(f"Could not load admin dashboard: {e}")
@@ -892,5 +1010,7 @@ elif st.session_state.page == "admin":
         st.session_state.role = None
         st.session_state.user_id = None
         st.session_state.username = None
+        if "admin_history" in st.session_state:
+            del st.session_state.admin_history
         st.session_state.page = "landing"
         st.rerun()

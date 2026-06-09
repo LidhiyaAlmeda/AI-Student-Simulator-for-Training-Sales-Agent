@@ -21,6 +21,8 @@ class ResetPasswordRequest(BaseModel):
 
 @router.post("/register")
 def register(data: dict):
+    print("REGISTER REQUEST RECEIVED")
+    print(data)
 
     try:
         create_user(

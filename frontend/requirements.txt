@@ -4,3 +4,4 @@ gtts
 requests
 python-dotenv
 groq
+transformers

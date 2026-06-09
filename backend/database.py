@@ -13,7 +13,7 @@ def ist_now():
 def create_connection():
     """Create and return a database connection"""
     print("DB PATH =", os.path.abspath(DB_PATH))
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30, check_same_thread=False)
     conn.row_factory = sqlite3.Row  
     return conn
 
@@ -21,6 +21,7 @@ def create_tables():
     """Create all required tables if they don't exist"""
     conn = create_connection()
     cursor = conn.cursor()
+    cursor.execute("PRAGMA journal_mode=WAL")
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
@@ -186,7 +187,6 @@ def save_conversation(
     """, (session_id, salesperson_msg, student_msg, persona, course, ist_now()))
 
     conn.commit()
-    update_session_timestamp(session_id)
     conn.close()
 
 
@@ -250,19 +250,22 @@ def create_user(name, email, password):
     conn = create_connection()
     cursor = conn.cursor()
 
-    cursor.execute("""
-        INSERT INTO users
-        (name, email, password, created_at)
-        VALUES (?, ?, ?, ?)
-    """, (
-        name,
-        email,
-        password,
-        ist_now()
-    ))
+    try:
+        cursor.execute("""
+            INSERT INTO users
+            (name, email, password, created_at)
+            VALUES (?, ?, ?, ?)
+        """, (name, email, password, ist_now()))
 
-    conn.commit()
-    conn.close()
+        conn.commit()
+        print("USER SAVED")
+        print("ID =", cursor.lastrowid)
+
+    except Exception as e:
+        print("INSERT FAILED:", e)
+
+    finally:
+        conn.close()
 
 def get_user(email, password):
     conn = create_connection()
@@ -402,19 +405,24 @@ def get_user_dashboard(user_id: int):
     rows = cursor.fetchall()
     conn.close()
 
-    data = []
+    performance = []
     scores = []
 
     for row in rows:
+        score = row["final_score"]
+        if scores is not None:
+            scores.append(score)
+            running_total = 0
+            running_total += score
+            growth_score = round(
+                running_total / len(scores),
+                1
+            )
 
-        if row["final_score"] is not None:
-
-            data.append({
-                "session_id": row["session_id"][-6:],   # shortened id
-                "score": row["final_score"]
-            })
-
-            scores.append(row["final_score"])
+            performance.append({
+                "session_id": row["session_id"],
+                "growth_score": growth_score
+            })    
 
     avg_score = (
         round(sum(scores) / len(scores), 1)
@@ -424,5 +432,38 @@ def get_user_dashboard(user_id: int):
     return {
         "average_score": avg_score,
         "sessions_completed": len(scores),
-        "performance": data
+        "performance": performance
     }
+
+def get_course_metrics(user_id: int):
+
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT
+            c.course,
+            COUNT(DISTINCT s.session_id) AS total_sessions,
+            ROUND(AVG(f.final_score), 1) AS avg_score
+        FROM sessions s
+        JOIN conversations c
+            ON s.session_id = c.session_id
+        LEFT JOIN feedback f
+            ON s.session_id = f.session_id
+        WHERE s.user_id = ?
+          AND c.course != ''
+        GROUP BY c.course
+        ORDER BY total_sessions DESC
+    """, (user_id,))
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    return [
+        {
+            "course": row["course"],
+            "sessions": row["total_sessions"],
+            "average_score": row["avg_score"] or 0
+        }
+        for row in rows
+    ]

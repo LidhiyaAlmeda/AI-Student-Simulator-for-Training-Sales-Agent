@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from b_config import USE_LLM
-from database import create_session,  get_user_dashboard
+from database import (create_session, get_user_dashboard, get_course_metrics)
 from fastapi import HTTPException
 import random
 import string
@@ -17,6 +17,8 @@ class ChatRequest(BaseModel):
     message:    str
     persona:    str = ""
     course:     str = ""
+    qualification: str = ""
+    subject: str = ""
     session_id: str = ""
     user_id:    int = None
 
@@ -35,7 +37,7 @@ def fallback_response(user_input, course, rag_text=None):
 def chat(user_message: ChatRequest):
     try:
         
-        from database import get_conversation, save_conversation
+        from database import get_conversation, save_conversation, update_session_timestamp
         from ai_logic.rag import search
         from ai_logic.llm import get_llm_response
         from ai_logic.chatbot import get_response
@@ -45,6 +47,8 @@ def chat(user_message: ChatRequest):
         message          = user_message.message
         selected_persona = user_message.persona
         selected_course  = user_message.course
+        selected_qualification = user_message.qualification
+        selected_subject       = user_message.subject
 
         # ✅ Create NEW session if first chat
         if not user_message.session_id:
@@ -76,6 +80,8 @@ def chat(user_message: ChatRequest):
                     user_message   = message,
                     retrieved_text = f"Course: {selected_course}\n{retrieved_text}",
                     persona        = selected_persona,
+                    qualification  = selected_qualification,
+                    subject        = selected_subject,
                     history        = conversation_history
                 )
             else:
@@ -95,8 +101,11 @@ def chat(user_message: ChatRequest):
             salesperson_msg = message,
             student_msg     = response_text,
             persona         = selected_persona,
-            course          = selected_course
+            course          = selected_course,
+            qualification   = selected_qualification,
+            subject         = selected_subject
         )
+        update_session_timestamp(session_id)
 
         # 🔊 Generate voice
         audio_file = convert_text_to_speech(response_text)
@@ -173,3 +182,7 @@ def admin_history(session_id: str):
 def dashboard(user_id: int):
     dashboard_data = get_user_dashboard(user_id)
     return dashboard_data
+
+@router.get("/course-metrics")
+def course_metrics(user_id: int):
+    return {"course_metrics": get_course_metrics(user_id)}

@@ -2,11 +2,13 @@ import requests
 
 BACKEND_URL = "https://ai-student-simulator-for-training-sales.onrender.com"
 
-def get_ai_response(message: str, persona: str, course: str, session_id: str = "", user_id: int = None) -> dict:
+def get_ai_response(message: str, persona: str, course: str, qualification: str, subject: str, session_id: str = "", user_id: int = None) -> dict:
     payload = {
         "message":    message,
         "persona":    persona,
         "course":     course,
+        "qualification": qualification,
+        "subject": subject,
         "session_id": session_id,
         "user_id":    user_id
     }
@@ -93,3 +95,13 @@ def get_user_dashboard(user_id: int):
     response = requests.get(f"{BACKEND_URL}/chat/dashboard", params={"user_id": user_id})
     response.raise_for_status()
     return response.json()
+
+def get_course_breakdown(user_id: int):
+    response = requests.get(f"{BACKEND_URL}/chat/dashboard/course-breakdown", params={"user_id": user_id})
+    response.raise_for_status()
+    return response.json()["courses"]
+
+def get_course_metrics(user_id: int):
+    response = requests.get(f"{BACKEND_URL}/chat/course-metrics", params={"user_id": user_id})
+    response.raise_for_status()
+    return response.json()["course_metrics"]
