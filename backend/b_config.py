@@ -24,10 +24,7 @@ VOICE_ENABLED  = True
 VOICE_LANGUAGE = "en"       # language for gTTS
 VOICE_SPEED    = False      # False = normal speed, True = slow
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-DB_PATH = os.path.join(BASE_DIR, "sales_training.db")
-
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 APP_HOST = "0.0.0.0"
 APP_PORT = 8000
