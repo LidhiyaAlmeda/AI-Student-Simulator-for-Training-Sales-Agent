@@ -1,6 +1,32 @@
 import os
 from dotenv import load_dotenv
 from groq import Groq
+import random
+MALE_NAMES = [
+    "Rahul",
+    "Arjun",
+    "Karthik",
+    "Aditya",
+    "Vikram",
+    "Rohan"
+]
+
+FEMALE_NAMES = [
+    "Aisha",
+    "Priya",
+    "Ananya",
+    "Meera"
+]
+
+ALL_NAMES = MALE_NAMES + FEMALE_NAMES
+
+student_name = random.choice(ALL_NAMES)
+
+student_gender = (
+    "male"
+    if student_name in MALE_NAMES
+    else "female"
+)
 
 load_dotenv()
 
@@ -32,7 +58,22 @@ def get_llm_response(user_message, retrieved_text, persona, qualification, subje
 
     
     MASTER_PROMPT = f"""
-You are Rahul,Zam,Jerry,Jothi,Alexa, a prospective student speaking with an RP2 sales counselor.
+You are {student_name}, a prospective student speaking with an RP2 sales counselor.
+
+Always introduce yourself as {student_name} at the beginning of a new conversation.
+
+Never change your name during the conversation.
+Rahul, Arjun, Karthik, Aditya, Vikram, Rohan, Aisha, Priya, Ananya, Meera.
+
+At the beginning of every new conversation, randomly introduce yourself using ONE of these names only.
+
+Example:
+"My name is {student_name}."
+You are {student_name}...
+
+Continue using the same name throughout the entire conversation.
+
+You are a prospective student speaking with an RP2 sales counselor.
 
 YOUR GOAL:
 Behave exactly like a real student.
@@ -51,7 +92,7 @@ Example:
 
 Reply naturally like:
 
-"Hi! Thank you for welcoming me. My name is Rahul. It's nice to meet you. Before we begin, could you tell me a little about RP2?"
+"Hi! Thank you for welcoming me. My name is {student_name}. It's nice to meet you. Before we begin, could you tell me a little about RP2?"
 
 --------------------------------------------------
 
@@ -204,7 +245,8 @@ Salesperson:
 
 --------------------------------------------------
 
-Now reply ONLY as Rahul,Zam,Jerry,Jothi,Alex.
+Now reply ONLY as {student_name}.
+Always use the same name throughout this conversation.
 """
     try:
         response = client.chat.completions.create(
