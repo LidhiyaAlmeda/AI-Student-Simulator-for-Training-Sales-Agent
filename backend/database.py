@@ -1,6 +1,7 @@
 import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from password_utils import hash_password, verify_password
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from b_config import DATABASE_URL
@@ -259,12 +260,14 @@ def create_user(name, email, password):
     conn = create_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
 
+    hashed = hash_password(password)
+
     try:
         cursor.execute("""
             INSERT INTO users (name, email, password, created_at)
             VALUES (%s, %s, %s, %s)
             RETURNING id
-        """, (name, email, password, ist_now()))
+        """, (name, email, hashed, ist_now()))
 
         new_id = cursor.fetchone()["id"]
         conn.commit()
@@ -286,11 +289,16 @@ def get_user(email, password):
         SELECT *
         FROM users
         WHERE email = %s
-        AND password = %s
-    """, (email, password))
+    """, (email,))
 
     user = cursor.fetchone()
     conn.close()
+
+    if not user:
+        return None
+
+    if not verify_password(password, user["password"]):
+        return None
 
     return user
 
@@ -299,11 +307,13 @@ def update_password(email, new_password):
     conn = create_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
 
+    hashed = hash_password(new_password)
+
     cursor.execute("""
         UPDATE users
         SET password = %s
         WHERE email = %s
-    """, (new_password, email))
+    """, (hashed, email))
 
     conn.commit()
     updated = cursor.rowcount
@@ -458,3 +468,65 @@ def get_course_metrics(user_id: int):
         }
         for row in rows
     ]
+
+def create_admin(name, email, password):
+    conn = create_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+    hashed = hash_password(password)
+
+    try:
+        cursor.execute("""
+            INSERT INTO admins (name, email, password, created_at)
+            VALUES (%s, %s, %s, %s)
+            RETURNING id
+        """, (name, email, hashed, ist_now()))
+
+        new_id = cursor.fetchone()["id"]
+        conn.commit()
+        print("ADMIN SAVED, ID =", new_id)
+
+    except Exception as e:
+        conn.rollback()
+        print("ADMIN INSERT FAILED:", e)
+        raise
+
+    finally:
+        conn.close()
+
+
+def get_admin(email, password):
+    conn = create_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+    cursor.execute("""
+        SELECT * FROM admins WHERE email = %s
+    """, (email,))
+
+    admin = cursor.fetchone()
+    conn.close()
+
+    if not admin:
+        return None
+
+    if not verify_password(password, admin["password"]):
+        return None
+
+    return admin
+
+
+def update_admin_password(email, new_password):
+    conn = create_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+    hashed = hash_password(new_password)
+
+    cursor.execute("""
+        UPDATE admins SET password = %s WHERE email = %s
+    """, (hashed, email))
+
+    conn.commit()
+    updated = cursor.rowcount
+    conn.close()
+
+    return updated > 0

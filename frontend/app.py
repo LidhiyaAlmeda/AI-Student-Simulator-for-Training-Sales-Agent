@@ -316,6 +316,31 @@ def reset_password(email, new_password):
     return response.json()
 
 # =================================================
+# ADMIN PASSWORD FUNCTION
+# =================================================
+
+def admin_login_user(email, password):
+    response = requests.post(
+        f"{BACKEND_URL}/auth/admin/login",
+        json={"email": email, "password": password}
+    )
+    return response.json()
+
+def admin_register_user(name, email, password):
+    response = requests.post(
+        f"{BACKEND_URL}/auth/admin/register",
+        json={"name": name, "email": email, "password": password}
+    )
+    return response.json()
+
+def admin_reset_password(email, new_password):
+    response = requests.post(
+        f"{BACKEND_URL}/auth/admin/reset-password",
+        json={"email": email, "new_password": new_password}
+    )
+    return response.json()
+
+# =================================================
 # SECURITY CHECK
 # =================================================
 PROTECTED_PAGES = {"dashboard", "chat", "admin"}
@@ -424,41 +449,10 @@ if st.session_state.page == "landing":
             )
     with col2:
         if st.button("Admin", key="btn_admin_landing"):
-            st.session_state.show_admin_login = not st.session_state.get("show_admin_login", False)
+            st.session_state.page = "admin_login"
+            st.rerun()
 
-    st.markdown("---")
- 
-    # ── ADMIN POPUP — rendered AFTER the divider, outside all column contexts ──
-    if st.session_state.get("show_admin_login"):
-        # Use columns to constrain width: empty | popup | empty
-        popup_col, _ = st.columns([3, 1])
-        with popup_col:
-            admin_pass = st.text_input(
-                "Admin Password",
-                type="password",
-                key="admin_pass_input",
-                placeholder="Enter admin password",
-                label_visibility="collapsed"
-            )
-            
-            c1, c2 = st.columns(2)
-            with c1:
-                if st.button("Enter", key="btn_admin_enter"):
-                    if admin_pass == "admin123":   # TODO: replace with secure check
-                        st.session_state.authenticated    = True
-                        st.session_state.role             = "admin"
-                        st.session_state.user_name        = "Admin"
-                        st.session_state.show_admin_login = False
-                        st.session_state.page             = "admin"
-                        st.rerun()
-                    else:
-                        st.error("Incorrect password.")
-            with c2:
-                if st.button("Cancel", key="btn_admin_cancel"):
-                    st.session_state.show_admin_login = False
-                    st.rerun()
- 
-    st.markdown("---")
+    st.markdown ("---")
  
     left, right = st.columns([3, 2], gap="large")
  
@@ -541,15 +535,14 @@ elif st.session_state.page == "forgot_password":
 
     with col1:
         if st.button("Reset Password"):
-
-            if new_password != confirm_password:
+            if not email.strip():
+                st.error("Please enter your email.")
+            elif new_password != confirm_password:
                 st.error("Passwords do not match")
-
+            elif len(new_password) < 6:
+                st.error("Password must be at least 6 characters.")
             else:
-                result = reset_password(
-                    email,
-                    new_password
-                )
+                result = reset_password(email, new_password)
 
                 if result.get("success"):
                     st.success("Password updated successfully")
@@ -562,6 +555,99 @@ elif st.session_state.page == "forgot_password":
         if st.button("Back"):
             st.session_state.page = "landing"
             st.rerun()
+
+# =========================================================
+# ADMIN LOGIN PAGE
+# =========================================================
+elif st.session_state.page == "admin_login":
+
+    _, center, _ = st.columns([1, 2, 1])
+    with center:
+        st.markdown("<h2 style='text-align:center'>Admin Login</h2>", unsafe_allow_html=True)
+
+        email    = st.text_input("Email",    key="admin_login_email",    placeholder="admin@example.com")
+        password = st.text_input("Password", key="admin_login_password", type="password")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Login", key="btn_admin_login"):
+                if not email.strip():
+                    st.error("Please enter your email.")
+                elif "@" not in email:
+                    st.error("Invalid email address.")
+                elif not password:
+                    st.error("Please enter your password.")
+                else:
+                    result = admin_login_user(email=email, password=password)
+                    if result.get("success"):
+                        st.session_state.authenticated = True
+                        st.session_state.role          = "admin"
+                        st.session_state.user_name     = result["name"]
+                        st.session_state.user_id       = result.get("admin_id")
+                        st.session_state.page          = "admin"
+                        st.rerun()
+                    else:
+                        st.write("DEBUG:", result)
+                        st.error(result.get("message", "Login failed. Please try again."))
+        with col2:
+            if st.button("Back", key="btn_admin_login_back"):
+                st.session_state.page = "landing"
+                st.rerun()
+
+        st.markdown("<hr style='border-color:#ddd;margin:1rem 0'>", unsafe_allow_html=True)
+
+        if st.button("Forgot Password?", key="btn_admin_forgot"):
+            st.session_state.page = "admin_forgot_password"
+            st.rerun()
+
+        if st.button("Don't Have An Account? Sign Up", key="btn_goto_admin_signup"):
+            st.session_state.page = "admin_signup"
+            st.rerun()
+
+
+# =========================================================
+# ADMIN SIGNUP PAGE
+# =========================================================
+elif st.session_state.page == "admin_signup":
+
+    _, center, _ = st.columns([1, 2, 1])
+    with center:
+        st.markdown("<h2 style='text-align:center'>Create Admin Account</h2>", unsafe_allow_html=True)
+
+        name     = st.text_input("Full Name",       key="admin_signup_name",     placeholder="John Smith")
+        email    = st.text_input("Email",            key="admin_signup_email",    placeholder="admin@example.com")
+        password = st.text_input("Password",         key="admin_signup_password", type="password")
+        confirm  = st.text_input("Confirm Password", key="admin_signup_confirm",  type="password")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Create Account", key="btn_admin_create"):
+                if not name.strip():
+                    st.error("Full name is required.")
+                elif not email.strip():
+                    st.error("Email is required.")
+                elif "@" not in email:
+                    st.error("Invalid email address.")
+                elif not password:
+                    st.error("Password is required.")
+                elif len(password) < 6:
+                    st.error("Password must be at least 6 characters.")
+                elif password != confirm:
+                    st.error("Passwords do not match.")
+                else:
+                    result = admin_register_user(name=name, email=email, password=password)
+                    if result.get("success"):
+                        st.success("Admin account created successfully.")
+                        st.session_state.page = "admin_login"
+                        st.rerun()
+                    else:
+                        st.write("DEBUG:", result)
+                        st.error(result.get("message", "Registration failed. Please try again."))
+        with col2:
+            if st.button("Back to Admin Login", key="btn_admin_signup_back"):
+                st.session_state.page = "admin_login"
+                st.rerun()
+
 # =========================================================
 # SIGNUP PAGE
 # =========================================================
@@ -609,6 +695,42 @@ elif st.session_state.page == "signup":
                 st.rerun()
  
         st.markdown('</div>', unsafe_allow_html=True)
+
+# =========================================================
+# ADMIN FORGOT PASSWORD PAGE
+# =========================================================
+elif st.session_state.page == "admin_forgot_password":
+
+    _, center, _ = st.columns([1, 2, 1])
+    with center:
+        st.markdown("<h2 style='text-align:center'>Reset Admin Password</h2>", unsafe_allow_html=True)
+
+        email            = st.text_input("Registered Email",    key="admin_forgot_email")
+        new_password     = st.text_input("New Password",        key="admin_forgot_new",     type="password")
+        confirm_password = st.text_input("Confirm Password",    key="admin_forgot_confirm", type="password")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Reset Password", key="btn_admin_reset"):
+                if not email.strip():
+                    st.error("Please enter your email.")
+                elif new_password != confirm_password:
+                    st.error("Passwords do not match.")
+                elif len(new_password) < 6:
+                    st.error("Password must be at least 6 characters.")
+                else:
+                    result = admin_reset_password(email, new_password)
+                    if result.get("success"):
+                        st.success("Password updated successfully.")
+                        st.session_state.page = "admin_login"
+                        st.rerun()
+                    else:
+                        st.error(result.get("message", "Reset failed. Please try again."))
+        with col2:
+            if st.button("Back to Admin Login", key="btn_admin_forgot_back"):
+                st.session_state.page = "admin_login"
+                st.rerun()
+                
 # =========================================================
 #  DASHBOARD
 # =========================================================
@@ -647,12 +769,12 @@ elif st.session_state.page == "dashboard":
             ">
                 <h3>{item['course']}</h3>
 
-                <div>
-                    Sessions: <b>{item['sessions']}</b>
+                <div style="color:#E5E7EB; font-size:14px;">
+                    Sessions: <b style="color:#FFFFFF;">{item['sessions']}</b>
                 </div>
 
-                <div style="margin-top:10px;">
-                    Avg Score: <b>{item['average_score']}%</b>
+                <div style="color:#E5E7EB; font-size:14px; margin-top:8px;">
+                    Avg Score: <b style="color:#FFFFFF;">{item['average_score']}%</b>
                 </div>
             </div>
             """
@@ -890,7 +1012,7 @@ elif st.session_state.page == "chat":
 # =========================================================
 elif st.session_state.page == "admin":
 
-    if st.session_state.role != "admin":
+    if st.session_state.get("role") != "admin":
         st.error("Access denied. Admins only.")
         if st.button("Back to Dashboard"):
             st.session_state.page = "dashboard"
