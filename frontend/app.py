@@ -36,6 +36,7 @@ get_user_sessions = _mod.get_user_sessions
 get_all_users = _mod.get_all_users
 get_user_dashboard = _mod.get_user_dashboard
 get_course_metrics = _mod.get_course_metrics
+reset_password = _mod.reset_password 
 
 _pc_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "persona_config.py")
 _spec2 = importlib.util.spec_from_file_location("persona_config", _pc_path)
@@ -310,7 +311,7 @@ def save_chat_history():
 
 def reset_password(email, new_password):
     response = requests.post(
-        f"{BACKEND_URL}/reset-password",
+        f"{BACKEND_URL}/auth/reset-password",
         json={"email": email, "new_password": new_password}
     )
     return response.json()
@@ -730,7 +731,7 @@ elif st.session_state.page == "admin_forgot_password":
             if st.button("Back to Admin Login", key="btn_admin_forgot_back"):
                 st.session_state.page = "admin_login"
                 st.rerun()
-                
+
 # =========================================================
 #  DASHBOARD
 # =========================================================
