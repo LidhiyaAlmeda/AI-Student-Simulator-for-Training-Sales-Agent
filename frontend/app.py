@@ -16,7 +16,6 @@ import base64
 from gtts import gTTS
 import pandas as pd
 from streamlit_mic_recorder import speech_to_text
-import streamlit.components.v1 as components
 import importlib.util, os
 
 _api_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "services", "api_client.py")
@@ -860,7 +859,7 @@ elif st.session_state.page == "chat":
         with st.chat_message(msg["role"]):
             st.write(msg["content"])
 
-    components.html(
+    st.html(
         """
         <script>
             window.parent.document.querySelector('section.main').scrollTo({
@@ -868,8 +867,7 @@ elif st.session_state.page == "chat":
                 behavior: 'smooth'
             });
         </script>
-        """,
-        height=0
+        """
     )
 
     st.markdown("---")
