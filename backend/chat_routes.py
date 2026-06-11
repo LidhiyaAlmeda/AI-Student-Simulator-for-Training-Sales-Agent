@@ -76,14 +76,18 @@ def chat(user_message: ChatRequest):
             retrieved_text = top_result.get("answer", "")
 
             if USE_LLM:
-                response_text = get_llm_response(
-                    user_message   = message,
-                    retrieved_text = f"Course: {selected_course}\n{retrieved_text}",
-                    persona        = selected_persona,
-                    qualification  = selected_qualification,
-                    subject        = selected_subject,
-                    history        = conversation_history
-                )
+                response = get_llm_response(
+    user_message=message,
+    retrieved_text=f"Course: {selected_course}\n{retrieved_text}",
+    persona=selected_persona,
+    qualification=selected_qualification,
+    subject=selected_subject,
+    history=conversation_history
+)
+
+response_text = response["response"]
+student_name = response["student_name"]
+student_gender = response["student_gender"]
             else:
                 response_text = fallback_response(message,selected_course,retrieved_text)
         else:
