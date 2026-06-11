@@ -207,6 +207,7 @@ Salesperson:
 Now reply ONLY as Rahul,Zam,Jerry,Jothi,Alex.
 """
 
+    try:
     response = client.chat.completions.create(
         model=GROQ_MODEL,
         messages=[
@@ -224,3 +225,7 @@ Now reply ONLY as Rahul,Zam,Jerry,Jothi,Alex.
     )
 
     return response.choices[0].message.content.strip()
+
+except Exception as e:
+    print("LLM ERROR:", e)
+    return f"LLM ERROR: {e}"
