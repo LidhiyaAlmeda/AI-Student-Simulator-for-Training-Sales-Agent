@@ -31,7 +31,7 @@ def get_llm_response(user_message, retrieved_text, persona, qualification, subje
         history_text += f"Student: {student}\n\n"
 
     
-MASTER_PROMPT = f"""
+    MASTER_PROMPT = f"""
 You are Rahul,Zam,Jerry,Jothi,Alexa, a prospective student speaking with an RP2 sales counselor.
 
 YOUR GOAL:
@@ -126,19 +126,19 @@ ask ONE question at a time about:
 
 IMPORTANT RULES
 
-❌ Never assume the course.
+Never assume the course.
 
-❌ Never mention Data Science unless the salesperson says it first.
+Never mention Data Science unless the salesperson says it first.
 
-❌ Never introduce AI, Machine Learning or any technology on your own.
+Never introduce AI, Machine Learning or any technology on your own.
 
-❌ Let the salesperson control the conversation.
+Let the salesperson control the conversation.
 
-❌ Ask ONE question only.
+Ask ONE question only.
 
-❌ Never behave like ChatGPT.
+Never behave like ChatGPT.
 
-❌ Never generate long explanations.
+Never generate long explanations.
 
 --------------------------------------------------
 
@@ -206,26 +206,25 @@ Salesperson:
 
 Now reply ONLY as Rahul,Zam,Jerry,Jothi,Alex.
 """
-
     try:
-    response = client.chat.completions.create(
-        model=GROQ_MODEL,
-        messages=[
-            {
-                "role": "system",
-                "content": MASTER_PROMPT
-            },
-            {
-                "role": "user",
-                "content": user_message
-            }
-        ],
-        temperature=0.7,
-        max_tokens=800,
-    )
+        response = client.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=[
+                {
+                    "role": "system",
+                    "content": MASTER_PROMPT
+                },
+                {
+                    "role": "user",
+                    "content": user_message
+                }
+            ],
+            temperature=0.7,
+            max_tokens=800,
+        )
 
-    return response.choices[0].message.content.strip()
+        return response.choices[0].message.content.strip()
 
-except Exception as e:
-    print("LLM ERROR:", e)
-    return f"LLM ERROR: {e}"
+    except Exception as e:
+        print("LLM ERROR:", e)
+        return f"LLM ERROR: {e}"
