@@ -82,14 +82,14 @@ def chat(user_message: ChatRequest):
 
             if USE_LLM:
                 response_text = get_llm_response(
-    user_message=message,
-    retrieved_text=f"Course: {selected_course}\n{retrieved_text}",
-    persona=selected_persona,
-    qualification=selected_qualification,
-    subject=selected_subject,
-    history=conversation_history,
-    stage=conversation_stage
-)
+                user_message=message,
+                retrieved_text=f"Course: {selected_course}\n{retrieved_text}",
+                persona=selected_persona,
+                qualification=selected_qualification,
+                subject=selected_subject,
+                history=conversation_history,
+                stage=conversation_stage
+               )
 
                 response_text = response["response"]
                 student_name = response["student_name"]
