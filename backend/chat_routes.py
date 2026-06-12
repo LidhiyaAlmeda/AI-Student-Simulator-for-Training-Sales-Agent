@@ -130,7 +130,7 @@ def chat(user_message: ChatRequest):
                 update_conversation_stage(session_id, "course_discussion")
 
         # 🔊 Generate voice
-        audio_file = convert_text_to_speech(text=response_text, gender=student_gender)
+        audio_file = convert_text_to_speech(text=response_text)
         audio_url  = f"/voice/audio/{audio_file}" if audio_file else None
 
         # ✅ Return response + session_id back to frontend
