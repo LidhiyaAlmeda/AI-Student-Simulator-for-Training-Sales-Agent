@@ -66,7 +66,9 @@ def chat(user_message: ChatRequest):
 
         # ✅ Get THIS student's history
         conversation_history = get_conversation(session_id)
-
+        print("========== HISTORY ==========")
+print(conversation_history)
+print("=============================")
     
         # 🔍 RAG search
         retrieved_text = search(message)
