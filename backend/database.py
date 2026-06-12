@@ -80,6 +80,13 @@ def create_tables():
     except Exception:
         conn.rollback()
 
+    try:
+        cursor.execute("ALTER TABLE sessions ADD COLUMN conversation_stage TEXT DEFAULT 'greeting'")
+        conn.commit()
+        print("✅ Migrated: added conversation_stage to sessions")
+    except Exception:
+        conn.rollback()
+
     for col in ["qualification", "subject"]:
         try:
             cursor.execute(f"ALTER TABLE conversations ADD COLUMN {col} TEXT DEFAULT ''")
