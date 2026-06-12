@@ -37,13 +37,11 @@ def fallback_response(user_input, course, rag_text=None):
 def chat(user_message: ChatRequest):
     try:
         
-        from database import (
-    get_conversation,
-    save_conversation,
-    update_session_timestamp,
-    get_conversation_stage,
-    update_conversation_stage
-)
+        from database import (get_conversation, save_conversation, update_session_timestamp, get_conversation_stage, update_conversation_stage)
+        from ai_logic.rag import search
+        from ai_logic.llm import get_llm_response
+        from ai_logic.chatbot import get_response
+        from text_to_speech import convert_text_to_speech
 
         # ✅ Extract fields
         message          = user_message.message
@@ -75,6 +73,8 @@ def chat(user_message: ChatRequest):
     
         # 🔍 RAG search
         retrieved_text = search(message)
+        student_gender = None
+        student_name = None
 
         if retrieved_text and len(retrieved_text) > 0:
             top_result     = retrieved_text[0]
@@ -82,14 +82,14 @@ def chat(user_message: ChatRequest):
 
             if USE_LLM:
                 response_text = get_llm_response(
-                user_message=message,
-                retrieved_text=f"Course: {selected_course}\n{retrieved_text}",
-                persona=selected_persona,
-                qualification=selected_qualification,
-                subject=selected_subject,
-                history=conversation_history,
-                stage=conversation_stage
-               )
+                    user_message=message,
+                    retrieved_text=f"Course: {selected_course}\n{retrieved_text}",
+                    persona=selected_persona,
+                    qualification=selected_qualification,
+                    subject=selected_subject,
+                    history=conversation_history,
+                    stage=conversation_stage
+                )
 
                 response_text = response["response"]
                 student_name = response["student_name"]
@@ -106,7 +106,7 @@ def chat(user_message: ChatRequest):
             )
 
         # ✅ Save THIS student's conversation
-              save_conversation(
+        save_conversation(
             session_id      = session_id,
             salesperson_msg = message,
             student_msg     = response_text,
@@ -115,6 +115,7 @@ def chat(user_message: ChatRequest):
             qualification   = selected_qualification,
             subject         = selected_subject
         )
+        update_session_timestamp(session_id)
 
         # Update conversation stage
         if conversation_stage == "greeting":
@@ -127,12 +128,6 @@ def chat(user_message: ChatRequest):
         elif conversation_stage == "waiting_for_course":
             if selected_course:
                 update_conversation_stage(session_id, "course_discussion")
-
-        # 🔊 Generate voice
-        audio_file = convert_text_to_speech(text=response_text, gender=student_gender)
-        audio_url  = f"/voice/audio/{audio_file}" if audio_file else None
-
-        
 
         # 🔊 Generate voice
         audio_file = convert_text_to_speech(text=response_text, gender=student_gender)
