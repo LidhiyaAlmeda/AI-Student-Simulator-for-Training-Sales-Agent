@@ -37,11 +37,13 @@ def fallback_response(user_input, course, rag_text=None):
 def chat(user_message: ChatRequest):
     try:
         
-        from database import get_conversation, save_conversation, update_session_timestamp
-        from ai_logic.rag import search
-        from ai_logic.llm import get_llm_response
-        from ai_logic.chatbot import get_response
-        from text_to_speech import convert_text_to_speech
+        from database import (
+    get_conversation,
+    save_conversation,
+    update_session_timestamp,
+    get_conversation_stage,
+    update_conversation_stage
+)
 
         # ✅ Extract fields
         message          = user_message.message
