@@ -419,7 +419,7 @@ if (st.session_state.authenticated and st.session_state.page in ["dashboard", "c
                 st.rerun()
  
         st.markdown("---")
-        if st.button("🚪 Logout"):
+        if st.button("Logout"):
             st.session_state.authenticated = False
             st.session_state.user_name = ""
             st.session_state.user_id = None
@@ -587,7 +587,6 @@ elif st.session_state.page == "admin_login":
                         st.session_state.page          = "admin"
                         st.rerun()
                     else:
-                        st.write("DEBUG:", result)
                         st.error(result.get("message", "Login failed. Please try again."))
         with col2:
             if st.button("Back", key="btn_admin_login_back"):
@@ -641,7 +640,6 @@ elif st.session_state.page == "admin_signup":
                         st.session_state.page = "admin_login"
                         st.rerun()
                     else:
-                        st.write("DEBUG:", result)
                         st.error(result.get("message", "Registration failed. Please try again."))
         with col2:
             if st.button("Back to Admin Login", key="btn_admin_signup_back"):
