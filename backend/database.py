@@ -543,7 +543,8 @@ def update_admin_password(email, new_password):
     conn.close()
 
     return updated > 0
-    def get_conversation_stage(session_id: str):
+    
+def get_conversation_stage(session_id: str):
     conn = create_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
 
