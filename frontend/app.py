@@ -655,42 +655,46 @@ elif st.session_state.page == "signup":
     _, center, _ = st.columns([1, 2, 1])
     with center:
         st.markdown("<h2 style='color:white;text-align:center'>Create Account</h2>", unsafe_allow_html=True)
-        st.subheader("Create Account")
- 
-        name     = st.text_input("Full Name",         key="signup_name",     placeholder="John Smith")
-        email    = st.text_input("Email",              key="signup_email",    placeholder="you@example.com")
-        password = st.text_input("Password",           key="signup_password", type="password")
-        confirm  = st.text_input("Confirm Password",   key="signup_confirm",  type="password")
- 
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("Create Account", key="btn_create"):
-                # Validation
-                if not name.strip():
-                    st.error("Full name is required.")
-                elif not email.strip():
-                    st.error("Email is required.")
-                elif "@" not in email:
-                    st.error("Please enter a valid email address.")
-                elif not password:
-                    st.error("Password is required.")
-                elif len(password) < 6:
-                    st.error("Password must be at least 6 characters.")
-                elif password != confirm:
-                    st.error("Passwords do not match.")
-                else:
-                    result = register_user( name=name, email=email, password=password)
-                    if result.get("success"):
-                        st.success("Account created successfully")
-                        st.session_state.page = "landing"
-                        st.rerun()
-                    else:
-                        st.error(result["message"])
- 
-        with col2:
-            if st.button("Back to Login", key="btn_back"):
+
+        if st.session_state.get("signup_done"):
+            st.success("Account created successfully")
+            if st.button("Back to Login", key="btn_signup_done_back"):
+                st.session_state.signup_done = False
                 st.session_state.page = "landing"
                 st.rerun()
+        else:
+            name     = st.text_input("Full Name",         key="signup_name",     placeholder="John Smith")
+            email    = st.text_input("Email",              key="signup_email",    placeholder="you@example.com")
+            password = st.text_input("Password",           key="signup_password", type="password")
+            confirm  = st.text_input("Confirm Password",   key="signup_confirm",  type="password")
+ 
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("Create Account", key="btn_create"):
+                    if not name.strip():
+                        st.error("Full name is required.")
+                    elif not email.strip():
+                        st.error("Email is required.")
+                    elif "@" not in email:
+                        st.error("Please enter a valid email address.")
+                    elif not password:
+                        st.error("Password is required.")
+                    elif len(password) < 6:
+                        st.error("Password must be at least 6 characters.")
+                    elif password != confirm:
+                        st.error("Passwords do not match.")
+                    else:
+                        result = register_user( name=name, email=email, password=password)
+                        if result.get("success"):
+                            st.session_state.signup_done = True
+                            st.rerun()
+                        else:
+                            st.error(result.get("message", "Registration failed. Please try again."))
+                            
+            with col2:
+                if st.button("Back to Login", key="btn_back"):
+                    st.session_state.page = "landing"
+                    st.rerun()         
  
         st.markdown('</div>', unsafe_allow_html=True)
 
