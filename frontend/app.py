@@ -1035,8 +1035,33 @@ elif st.session_state.page == "admin":
             st.session_state.page = "dashboard"
             st.rerun()
         st.stop()
+
+    top_col1, top_col2 = st.columns([3, 1])
+    with top_col1:
+        st.title("Admin Dashboard")
+    with top_col2:
+        btn_col1, btn_col2 = st.columns(2)
+        with btn_col1:
+            if st.button("Back to Home", use_container_width=True):
+                st.session_state.logged_in = False
+                st.session_state.role = None
+                st.session_state.user_id = None
+                st.session_state.username = None
+                if "admin_history" in st.session_state:
+                    del st.session_state.admin_history
+                st.session_state.page = "landing"
+                st.rerun()
+        with btn_col2:
+            if st.button("Admin Logout", use_container_width=True):
+                st.session_state.logged_in = False
+                st.session_state.role = None
+                st.session_state.user_id = None
+                st.session_state.username = None
+                if "admin_history" in st.session_state:
+                    del st.session_state.admin_history
+                st.session_state.page = "landing"
+                st.rerun()
         
-    st.title("Admin Dashboard")
     st.markdown("### Training Analytics")
     try:
         users = get_all_users()
@@ -1094,12 +1119,6 @@ elif st.session_state.page == "admin":
         if not sessions:
             st.warning("No sessions for this user.")
         else:
-            session_options_full = {
-                f"{s['title']} | {s.get('persona', 'N/A')} | {s.get('course', 'N/A')} | {s['updated_at']}":
-                s["session_id"]
-                for s in sessions
-            }
-
             col_p, col_c = st.columns(2)
             with col_p:
                 personas = sorted(set(s.get("persona", "N/A") for s in sessions))
@@ -1181,27 +1200,3 @@ elif st.session_state.page == "admin":
 
     except Exception as e:
         st.error(f"Could not load admin dashboard: {e}")
-
-    st.markdown("---")
-
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("Back to Home", use_container_width=True):
-            st.session_state.logged_in = False
-            st.session_state.role = None
-            st.session_state.user_id = None
-            st.session_state.username = None
-            if "admin_history" in st.session_state:
-                del st.session_state.admin_history
-            st.session_state.page = "landing"
-            st.rerun()
-    with col2:
-        if st.button("Admin Logout", use_container_width=True):
-            st.session_state.logged_in = False
-            st.session_state.role = None
-            st.session_state.user_id = None
-            st.session_state.username = None
-            if "admin_history" in st.session_state:
-                del st.session_state.admin_history
-            st.session_state.page = "landing"
-            st.rerun()
