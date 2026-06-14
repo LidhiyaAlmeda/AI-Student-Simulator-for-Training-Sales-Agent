@@ -128,7 +128,7 @@ def chat(user_message: ChatRequest):
         )
         update_session_timestamp(session_id)
 
-        # 7. Update Conversation Stage (Fixing the Elif chain indentation)
+        # 7. Update Conversation Stage
         if conversation_stage == "greeting":
             update_conversation_stage(session_id, "waiting_for_rp2")
 
@@ -151,7 +151,11 @@ def chat(user_message: ChatRequest):
                 update_conversation_stage(session_id, "finished")
 
         # 8. Generate voice
-        audio_file = convert_text_to_speech(text=response_text)
+        # Corrected indentation for multiline function call
+        audio_file = convert_text_to_speech(
+            text=response_text,
+            gender=student_gender
+        )
         audio_url = f"/voice/audio/{audio_file}" if audio_file else None
 
         return {
@@ -167,7 +171,7 @@ def chat(user_message: ChatRequest):
         print("Error:", e)
         return {"error": f"Something went wrong: {str(e)}"}
 
-# --- Admin/Dashboard endpoints ---
+# --- Remaining endpoints ---
 @router.get("/history/{session_id}")
 def get_chat_history(session_id: str, user_id: int):
     try:

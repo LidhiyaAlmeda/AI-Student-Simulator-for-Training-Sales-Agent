@@ -3,14 +3,13 @@ import random
 from dotenv import load_dotenv
 from groq import Groq
 
-# Constants
-MALE_NAMES = ["Rahul", "Arjun", "Karthik", "Aditya", "Vikram", "Rohan"]
-FEMALE_NAMES = ["Aisha", "Priya", "Ananya", "Meera"]
-ALL_NAMES = MALE_NAMES + FEMALE_NAMES
+# Import the student generator
+from ai_logic.student_profile import generate_student
 
-# Initial selection
-student_name = random.choice(ALL_NAMES)
-student_gender = "female" if student_name in FEMALE_NAMES else "male"
+# Generate a fresh student identity
+student_profile = generate_student()
+student_name = student_profile["name"]
+student_gender = student_profile["gender"]
 
 load_dotenv()
 
@@ -24,7 +23,7 @@ client = get_client()
 GROQ_MODEL = "llama-3.1-8b-instant"
 
 if client:
-    print("✅ LLM ready")
+    print(f"✅ LLM ready (Acting as {student_name})")
 else:
     print("⚠️ No API key found")
 
@@ -41,7 +40,7 @@ def get_llm_response(
     if client is None:
         return {"response": "I'm exploring course options. Can you tell me more?", "student_name": student_name}
 
-    # 1. Build history text from the list of dictionaries
+    # 1. Build history text
     history_text = ""
     for turn in history[-5:]:
         salesperson = turn.get("salesperson", "")
@@ -59,13 +58,16 @@ def get_llm_response(
     course_keywords = ["data science", "agentic ai", "artificial intelligence", "data analytics", "machine learning"]
     course_introduced = any(course in history_lower for course in course_keywords)
 
-    # 3. Construct the Master Prompt
+    # 3. Construct the Master Prompt (Fixing the closing quotes)
     MASTER_PROMPT = f"""
     You are {student_name}, a prospective student speaking with an RP2 sales counselor.
     Gender: {student_gender}
-    Identity: {persona}, qualified in {qualification} with background in {subject}.
 
-    Always maintain this identity. Never change your name.
+    Behavior Rules:
+    - If gender is male: Speak like a genuine male student.
+    - If gender is female: Speak like a genuine female student.
+    - Identity: {persona}, qualified in {qualification} with background in {subject}.
+    - Never change your name or gender.
 
     YOUR GOAL:
     Behave exactly like a real student. 
@@ -85,15 +87,11 @@ def get_llm_response(
        - Ask: "Thank you for explaining RP2. Which course are you introducing today?"
     
     4. If course_introduced is True AND stage != "closing":
-       - Continue the discussion naturally. 
-       - Ask only ONE new question at a time about: Duration, Projects, Internship, Placement, Certification, or Fees.
-       - Never repeat a question.
-
+       - Continue naturally. Ask ONE question about: Duration, Projects, Internship, Placement, or Fees.
+    
     5. If stage == "closing":
-       - You are now convinced. Do NOT ask new technical questions.
-       - Act like a genuine student ready to join.
-       - Ask about: Admission process, Enrollment, EMI, Scholarships, or Batch start dates.
-       - Show buying intent (e.g., "I'd like to proceed", "Please help me with admission").
+       - Act ready to join. Ask about: Admission process, Enrollment, EMI, or Batch start dates.
+       - Show buying intent.
 
     --------------------------------------------------
     CONTEXT:
@@ -108,7 +106,7 @@ def get_llm_response(
     Reply ONLY as {student_name}:
     """
 
-    # 4. Attempt to call the LLM
+    # 4. Attempt to call the LLM (Aligned try block)
     try:
         response = client.chat.completions.create(
             model=GROQ_MODEL,

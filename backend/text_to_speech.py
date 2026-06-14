@@ -1,4 +1,5 @@
-from gtts import gTTS
+import asyncio
+import edge_tts
 from pathlib import Path
 import uuid
 import re
@@ -8,23 +9,15 @@ from b_config import (
     VOICE_SPEED
 )
 
-
-AUDIO_DIR       = Path("audio")
+AUDIO_DIR = Path("audio")
 MAX_TEXT_LENGTH = 1000    # characters
-MAX_FILES_KEPT  = 20      # old files to keep
-
+MAX_FILES_KEPT = 20      # old files to keep
 
 def clean_text(text: str) -> str:
     """
     Remove markdown and special characters
     that sound bad when spoken out loud
-
-    Example:
-    "**Hello** - this is _great_!"
-    becomes:
-    "Hello this is great!"
     """
-
     # ✅ Remove bold markdown  **text**
     text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)
 
@@ -45,16 +38,10 @@ def clean_text(text: str) -> str:
 
     return text
 
-
 def trim_text(text: str, max_length: int = MAX_TEXT_LENGTH) -> str:
     """
     Cut text at sentence boundary
     so audio doesn't end mid-sentence
-
-    Example (max 50 chars):
-    "Hello there. This is a very long sentence that goes on."
-    becomes:
-    "Hello there."
     """
     if len(text) <= max_length:
         return text
@@ -68,12 +55,9 @@ def trim_text(text: str, max_length: int = MAX_TEXT_LENGTH) -> str:
 
     return trimmed
 
-
-
 def cleanup_old_files():
     """
     Keep only the latest MAX_FILES_KEPT audio files
-    Delete the rest to save disk space
     """
     files = sorted(
         AUDIO_DIR.glob("*.mp3"),
@@ -86,16 +70,24 @@ def cleanup_old_files():
             old_file.unlink()
             print(f"🗑️ Deleted old audio: {old_file.name}")
 
+async def generate_edge_tts(text, filepath, gender="male"):
+    voice = (
+        "en-US-AriaNeural"
+        if gender == "female"
+        else "en-US-GuyNeural"
+    )
 
-def convert_text_to_speech(text: str):
+    communicate = edge_tts.Communicate(
+        text=text,
+        voice=voice
+    )
+
+    await communicate.save(str(filepath))
+
+def convert_text_to_speech(text: str, gender: str = "male"):
     """
     Convert text to speech and save as mp3
-
-    Returns:
-        filename (str) if successful
-        None if failed or voice disabled
     """
-
     # ✅ Check if voice is enabled in config
     if not VOICE_ENABLED:
         print("🔇 Voice disabled in config")
@@ -123,12 +115,13 @@ def convert_text_to_speech(text: str):
         filepath = AUDIO_DIR / filename
 
         # ✅ Generate audio using config settings
-        tts = gTTS(
-            text=text,
-            lang=VOICE_LANGUAGE,    # from config.py
-            slow=VOICE_SPEED        # from config.py
+        asyncio.run(
+            generate_edge_tts(
+                text=text,
+                filepath=filepath,
+                gender=gender
+            )
         )
-        tts.save(str(filepath))
 
         # ✅ Clean old files after saving
         cleanup_old_files()
