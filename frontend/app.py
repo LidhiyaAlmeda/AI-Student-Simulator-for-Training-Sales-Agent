@@ -68,7 +68,7 @@ header[data-testid="stHeader"] { display: none !important; }
 #MainMenu { display: none !important; }
 footer { display: none !important; }
 [data-testid="stToolbar"] { display: none !important; }
-[data-testid="stDecoration"] {  display: none !important; }
+[data-testid="stDecoration"] { display: none !important; }
 
 /* BACKGROUND */
 .stApp {
@@ -89,15 +89,13 @@ section[data-testid="stSidebar"] * {
     color: white !important;
 }
 
-/* ── SIDEBAR CHAT HISTORY BUTTONS ── */
-section[data-testid="stSidebar"] .stButton > button,
-section[data-testid="stSidebar"] .stButton > button:hover,
-section[data-testid="stSidebar"] .stButton > button:focus,
-section[data-testid="stSidebar"] .stButton > button:active {
+/* ── SIDEBAR BUTTONS ── */
+section[data-testid="stSidebar"] .stButton > button {
     background: transparent !important;
     background-image: none !important;
+    background-color: transparent !important;
     color: white !important;
-    border: 1px solid rgba(255,255,255,0.15) !important;
+    border: 1px solid rgba(255,255,255,0.2) !important;
     font-weight: 400 !important;
     text-align: left !important;
     justify-content: flex-start !important;
@@ -106,28 +104,38 @@ section[data-testid="stSidebar"] .stButton > button:active {
     box-shadow: none !important;
     transform: none !important;
 }
-}
 section[data-testid="stSidebar"] .stButton > button:hover {
-    background: rgba(255,255,255,0.08) !important;
+    background-color: rgba(255,255,255,0.08) !important;
     background-image: none !important;
-    border-color: rgba(255,255,255,0.3) !important;
+    border-color: rgba(255,255,255,0.35) !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+section[data-testid="stSidebar"] .stButton > button:focus,
+section[data-testid="stSidebar"] .stButton > button:active {
+    background-color: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    transform: none !important;
 }
 
 /* ── SIDEBAR ⋮ POPOVER BUTTON ── */
 section[data-testid="stSidebar"] [data-testid="stPopover"] button {
     background: transparent !important;
+    background-image: none !important;
     color: white !important;
     border: none !important;
     padding: 0.2rem 0.3rem !important;
     font-size: 16px !important;
+    box-shadow: none !important;
 }
- 
-/* ── GLOBAL TEXT (dark bg areas) ── */
-.stApp h1, .stApp h2, .stApp h3,
-.stApp h4, .stApp h5, .stApp h6 {  color: white !important; }
-.stApp p, .stApp li {  color: rgba(255,255,255,0.9) !important; }
 
-/* ── WIDGET LABELS (dark bg) ── */
+/* ── GLOBAL TEXT ── */
+.stApp h1, .stApp h2, .stApp h3,
+.stApp h4, .stApp h5, .stApp h6 { color: white !important; }
+.stApp p, .stApp li { color: rgba(255,255,255,0.9) !important; }
+
+/* ── WIDGET LABELS ── */
 .stApp .stTextInput > label,
 .stApp .stSelectbox > label,
 .stApp .stRadio > label {
@@ -143,8 +151,8 @@ section[data-testid="stSidebar"] [data-testid="stPopover"] button {
     border-radius: 10px !important;
     border: 1.5px solid #4facfe !important;
 }
- 
-/* ── BUTTONS ── */
+
+/* ── MAIN PAGE BUTTONS (gradient) ── */
 .stApp > div:not(section[data-testid="stSidebar"]) .stButton > button {
     background: linear-gradient(90deg, #4facfe, #00f2fe) !important;
     color: #000000 !important;
@@ -159,20 +167,18 @@ section[data-testid="stSidebar"] [data-testid="stPopover"] button {
     opacity: 0.9 !important;
     transform: scale(1.01) !important;
 }
- 
+
 /* ── CHAT MESSAGES ── */
 [data-testid="stChatMessage"] {
     background: rgba(255,255,255,0.10) !important;
     border-radius: 12px !important;
     padding: 10px !important;
 }
- 
+
 /* ── DIVIDER ── */
-hr {
-    border-color: rgba(255,255,255,0.15) !important;
-}
- 
-/* ── INFO CARD (About section) ── */
+hr { border-color: rgba(255,255,255,0.15) !important; }
+
+/* ── INFO CARD ── */
 .info-card {
     background: rgba(255,255,255,0.07) !important;
     border: 1px solid rgba(255,255,255,0.18) !important;
@@ -180,31 +186,20 @@ hr {
     padding: 2rem !important;
     height: 100% !important;
 }
-.info-card h3, .info-card p, .info-card li {
-    color: white !important;
-}
- 
+.info-card h3, .info-card p, .info-card li { color: white !important; }
+
 /* ── LOGIN CARD ── */
-/* 
-   Streamlit renders widgets OUTSIDE the html div.
-   We instead style the column container that wraps the right column.
-   The unique data-testid approach targets it reliably.
-*/
 div[data-testid="column"]:nth-of-type(2) > div:first-child {
     background: white !important;
     border-radius: 16px !important;
     padding: 2rem !important;
     box-shadow: 0 8px 32px rgba(0,0,0,0.3) !important;
 }
- 
-/* Fix text color inside login card column */
 div[data-testid="column"]:nth-of-type(2) label,
 div[data-testid="column"]:nth-of-type(2) p,
 div[data-testid="column"]:nth-of-type(2) h2,
-div[data-testid="column"]:nth-of-type(2) h3 {
-    color: #111111 !important;
-}
- 
+div[data-testid="column"]:nth-of-type(2) h3 { color: #111111 !important; }
+
 /* ── COURSE BADGES ── */
 .course-badge {
     display: inline-block;
@@ -217,7 +212,7 @@ div[data-testid="column"]:nth-of-type(2) h3 {
     font-weight: 600;
     margin: 5px 5px 5px 0;
 }
- 
+
 /* ── MAIN TITLE ── */
 .main-title {
     font-size: 38px;
@@ -227,7 +222,7 @@ div[data-testid="column"]:nth-of-type(2) h3 {
     margin: 0;
     padding: 0;
 }
- 
+
 /* ── METRIC CARDS ── */
 [data-testid="stMetric"] {
     background: rgba(255,255,255,0.08) !important;
@@ -237,10 +232,8 @@ div[data-testid="column"]:nth-of-type(2) h3 {
 }
 [data-testid="stMetric"] label,
 [data-testid="stMetricValue"],
-[data-testid="stMetricDelta"] {
-    color: white !important;
-}
- 
+[data-testid="stMetricDelta"] { color: white !important; }
+
 </style>
 """, unsafe_allow_html=True)
 
