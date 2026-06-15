@@ -54,7 +54,8 @@ history_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "chat_hi
 st.set_page_config(
     page_title="RP2 AI Sales Trainer",
     page_icon=logo_path,
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 # =========================================================
