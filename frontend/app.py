@@ -90,19 +90,17 @@ section[data-testid="stSidebar"] * {
 }
 
 /* ── SIDEBAR BUTTONS ── */
-section[data-testid="stSidebar"] .stButton > button {
-    background: transparent !important;
+section[data-testid="stSidebar"] .stButton button[data-testid="baseButton-secondary"],
+section[data-testid="stSidebar"] .stButton button[data-testid="baseButton-secondaryFormSubmit"],
+section[data-testid="stSidebar"] .stButton button {
+    background-color: #0b1220 !important;
     background-image: none !important;
-    background-color: transparent !important;
     color: white !important;
     border: 1px solid rgba(255,255,255,0.2) !important;
-    font-weight: 400 !important;
-    text-align: left !important;
-    justify-content: flex-start !important;
-    padding: 0.4rem 0.6rem !important;
-    font-size: 13px !important;
     box-shadow: none !important;
     transform: none !important;
+    font-weight: 400 !important;
+    font-size: 13px !important;   
 }
 section[data-testid="stSidebar"] .stButton > button:hover {
     background-color: rgba(255,255,255,0.08) !important;
