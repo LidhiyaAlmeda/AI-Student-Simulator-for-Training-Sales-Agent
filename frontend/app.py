@@ -64,21 +64,11 @@ st.markdown("""
 <style>
 
 /* ── HIDE STREAMLIT TOP TOOLBAR & HEADER ── */
-header[data-testid="stHeader"] {
-    display: none !important;
-}
-#MainMenu {
-    display: none !important;
-}
-footer {
-    display: none !important;
-}
-[data-testid="stToolbar"] {
-    display: none !important;
-}
-[data-testid="stDecoration"] {
-    display: none !important;
-}
+header[data-testid="stHeader"] { display: none !important; }
+#MainMenu { display: none !important; }
+footer { display: none !important; }
+[data-testid="stToolbar"] { display: none !important; }
+[data-testid="stDecoration"] {  display: none !important; }
 
 /* BACKGROUND */
 .stApp {
@@ -98,15 +88,39 @@ section[data-testid="stSidebar"] {
 section[data-testid="stSidebar"] * {
     color: white !important;
 }
+
+/* ── SIDEBAR CHAT HISTORY BUTTONS ── */
+section[data-testid="stSidebar"] .stButton > button {
+    background: transparent !important;
+    color: white !important;
+    border: 1px solid rgba(255,255,255,0.15) !important;
+    font-weight: 400 !important;
+    text-align: left !important;
+    justify-content: flex-start !important;
+    padding: 0.4rem 0.6rem !important;
+    font-size: 13px !important;
+    font-weight: 400 !important;
+}
+}
+section[data-testid="stSidebar"] .stButton > button:hover {
+    background: rgba(255,255,255,0.08) !important;
+    border-color: rgba(255,255,255,0.3) !important;
+    transform: none !important;
+}
+
+/* ── SIDEBAR ⋮ POPOVER BUTTON ── */
+section[data-testid="stSidebar"] [data-testid="stPopover"] button {
+    background: transparent !important;
+    color: white !important;
+    border: none !important;
+    padding: 0.2rem 0.3rem !important;
+    font-size: 16px !important;
+}
  
 /* ── GLOBAL TEXT (dark bg areas) ── */
 .stApp h1, .stApp h2, .stApp h3,
-.stApp h4, .stApp h5, .stApp h6 {
-    color: white !important;
-}
-.stApp p, .stApp li {
-    color: rgba(255,255,255,0.9) !important;
-}
+.stApp h4, .stApp h5, .stApp h6 {  color: white !important; }
+.stApp p, .stApp li {  color: rgba(255,255,255,0.9) !important; }
 
 /* ── WIDGET LABELS (dark bg) ── */
 .stApp .stTextInput > label,
@@ -126,7 +140,7 @@ section[data-testid="stSidebar"] * {
 }
  
 /* ── BUTTONS ── */
-.stButton > button {
+.stApp > div:not(section[data-testid="stSidebar"]) .stButton > button {
     background: linear-gradient(90deg, #4facfe, #00f2fe) !important;
     color: #000000 !important;
     font-weight: 700 !important;
@@ -136,7 +150,7 @@ section[data-testid="stSidebar"] * {
     padding: 0.5rem 1rem !important;
     font-size: 15px !important;
 }
-.stButton > button:hover {
+.stApp > div:not(section[data-testid="stSidebar"]) .stButton > button:hover {
     opacity: 0.9 !important;
     transform: scale(1.01) !important;
 }
