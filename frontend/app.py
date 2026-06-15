@@ -82,13 +82,32 @@ footer { display: none !important; }
     background: transparent !important;
 }
 
-/* SIDEBAR */
+/* ── FORCE SIDEBAR ALWAYS OPEN ── */
 section[data-testid="stSidebar"] {
     background-color: #0b1220 !important;
+    min-width: 300px !important;
+    width: 300px !important;
+    transform: translateX(0) !important;
+    visibility: visible !important;
+    display: block !important;
+    margin-left: 0 !important;
+}
+section[data-testid="stSidebar"][aria-expanded="false"] {
+    min-width: 300px !important;
+    width: 300px !important;
+    transform: translateX(0) !important;
+    margin-left: 0 !important;
+    display: block !important;
+    visibility: visible !important;
 }
 section[data-testid="stSidebar"] * {
     color: white !important;
 }
+
+/* ── HIDE SIDEBAR TOGGLE BUTTONS ── */
+[data-testid="collapsedControl"] { display: none !important; }
+button[aria-label="Close sidebar"] { display: none !important; }
+button[aria-label="Open sidebar"] { display: none !important; }
 
 /* ── SIDEBAR BUTTONS ── */
 section[data-testid="stSidebar"] .stButton button[data-testid="baseButton-secondary"],
@@ -101,7 +120,7 @@ section[data-testid="stSidebar"] .stButton button {
     box-shadow: none !important;
     transform: none !important;
     font-weight: 400 !important;
-    font-size: 13px !important;   
+    font-size: 13px !important;
 }
 section[data-testid="stSidebar"] .stButton > button:hover {
     background-color: rgba(255,255,255,0.08) !important;
