@@ -258,13 +258,6 @@ div[data-testid="column"]:nth-of-type(2) h3 { color: #111111 !important; }
 footer {visibility: hidden;}
 header {visibility: hidden;}
 
-<div style="display:flex; align-items:center; gap:12px;
-    background:rgba(255,255,255,0.05);
-    border:1.5px solid rgba(255,255,255,0.15);
-    border-radius:10px; padding:10px 16px; margin-bottom:8px;">
-    <span style="color:rgba(255,255,255,0.75); font-size:14px;">🎙️ Voice input</span>
-</div>
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -924,8 +917,19 @@ elif st.session_state.page == "chat":
 
     # INPUTS
     prompt = st.text_input("Type your pitch:", key="text_input")
+    st.markdown(
+        "<p style='color:white; font-size:14px; font-weight:600; margin-bottom:4px;'>🎙️ Voice Input</p>",
+        unsafe_allow_html=True
+    )
 
-    audio_bytes = audio_recorder(pause_threshold=2.5, sample_rate=16000, key=f"mic_{st.session_state.mic_key}")
+    col_mic, col_spacer = st.columns([1, 5])
+    with col_mic:
+        audio_bytes = audio_recorder(
+            pause_threshold=2.5,
+            sample_rate=16000,
+            key=f"mic_{st.session_state.mic_key}"
+        )
+   
     audio_text = None
     if audio_bytes and len(audio_bytes) > 1000:
         try:
