@@ -15,8 +15,11 @@ import datetime
 import base64
 from gtts import gTTS
 import pandas as pd
-from streamlit_mic_recorder import speech_to_text
+from audio_recorder_streamlit import audio_recorder
+from groq import Groq
 import importlib.util, os
+
+groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 _api_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "services", "api_client.py")
 _spec = importlib.util.spec_from_file_location("api_client", _api_path)
@@ -252,17 +255,14 @@ div[data-testid="column"]:nth-of-type(2) h3 { color: #111111 !important; }
 [data-testid="stMetricValue"],
 [data-testid="stMetricDelta"] { color: white !important; }
 
+ /* Hide Streamlit footer and main menu */
+ #MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+        
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("""
-    <style>
-        /* Hide Streamlit footer and main menu */
-        #MainMenu {visibility: hidden;}
-        footer {visibility: hidden;}
-        header {visibility: hidden;}
-    </style>
-""", unsafe_allow_html=True)
 
 # SESSION STATE
 # =========================================================
@@ -920,14 +920,18 @@ elif st.session_state.page == "chat":
     # INPUTS
     prompt = st.text_input("Type your pitch:", key="text_input")
 
-    audio_text = speech_to_text(
-        start_prompt="🎙️ Speak",
-        stop_prompt="⏹️ Stop",
-        language="en",
-        use_container_width=True,
-        just_once=True,
-        key=f"mic_{st.session_state.mic_key}"
-    )
+    audio_bytes = audio_recorder(pause_threshold=2.5, sample_rate=16000, key=f"mic_{st.session_state.mic_key}")
+    audio_text = None
+    if audio_bytes and len(audio_bytes) > 1000:
+        try:
+            transcription = groq_client.audio.transcriptions.create(
+                file=("audio.wav", audio_bytes, "audio/wav"),
+                model="whisper-large-v3",
+                language="en"
+            )
+            audio_text = transcription.text
+        except Exception as e:
+            st.warning(f"Transcription error: {e}")
 
     col1, col2 = st.columns(2)
     with col1:
