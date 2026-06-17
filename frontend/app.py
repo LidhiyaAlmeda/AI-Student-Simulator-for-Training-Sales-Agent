@@ -19,8 +19,6 @@ from audio_recorder_streamlit import audio_recorder
 from groq import Groq
 import importlib.util, os
 
-groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
-
 _api_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "services", "api_client.py")
 _spec = importlib.util.spec_from_file_location("api_client", _api_path)
 _mod = importlib.util.module_from_spec(_spec)
@@ -924,6 +922,7 @@ elif st.session_state.page == "chat":
     audio_text = None
     if audio_bytes and len(audio_bytes) > 1000:
         try:
+            groq_client = Groq(api_key=st.secrets.get("GROQ_API_KEY") or os.environ.get("GROQ_API_KEY"))
             transcription = groq_client.audio.transcriptions.create(
                 file=("audio.wav", audio_bytes, "audio/wav"),
                 model="whisper-large-v3",
