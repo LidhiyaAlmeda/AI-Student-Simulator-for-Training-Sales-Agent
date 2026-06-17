@@ -64,15 +64,16 @@ def chat(user_message: ChatRequest):
 
         if USE_LLM:
             llm_data = get_llm_response(
-                user_message=message,
-                retrieved_text=f"Course: {selected_course}\n{retrieved_text}",
-                persona=selected_persona,
-                qualification=selected_qualification,
-                subject=selected_subject,
-                history=conversation_history,
-                stage=conversation_stage,
-                chat_count=chat_count
-            )
+    user_message=message,
+    retrieved_text=f"Course: {selected_course}\n{retrieved_text}",
+    persona=selected_persona,
+    qualification=selected_qualification,
+    subject=selected_subject,
+    history=conversation_history,
+    stage=conversation_stage,
+    chat_count=chat_count,
+    session_id=session_id
+)
             response_text = llm_data.get("response", "")
             student_name = llm_data.get("student_name", "")
             student_gender = llm_data.get("student_gender", "")

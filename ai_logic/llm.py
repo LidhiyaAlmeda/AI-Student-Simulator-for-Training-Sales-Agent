@@ -5,11 +5,9 @@ from groq import Groq
 
 # Import the student generator
 from ai_logic.student_profile import generate_student
+from database import get_student_identity, save_student_identity
 
-# Generate a fresh student identity
-student_profile = generate_student()
-student_name = student_profile["name"]
-student_gender = student_profile["gender"]
+
 
 load_dotenv()
 
@@ -35,11 +33,24 @@ def get_llm_response(
     subject,
     history,
     stage,
-    chat_count
+    chat_count,
+    session_id
 ):
     if client is None:
-        return {"response": "I'm exploring course options. Can you tell me more?", "student_name": student_name}
+        # Get existing student identity for this session
+    student_name, student_gender = get_student_identity(session_id)
 
+    # First message in this session -> generate and save
+    if not student_name:
+        student_profile = generate_student()
+        student_name = student_profile["name"]
+        student_gender = student_profile["gender"]
+
+        save_student_identity(
+            session_id=session_id,
+            student_name=student_name,
+            student_gender=student_gender
+        )
     # 1. Build history text
     history_text = ""
     for turn in history[-5:]:

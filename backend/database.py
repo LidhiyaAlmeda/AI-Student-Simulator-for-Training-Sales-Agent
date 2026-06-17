@@ -87,7 +87,7 @@ def create_tables():
     except Exception:
         conn.rollback()
 
-    for col in ["qualification", "subject"]:
+    f    for col in ["qualification", "subject"]:
         try:
             cursor.execute(f"ALTER TABLE conversations ADD COLUMN {col} TEXT DEFAULT ''")
             conn.commit()
@@ -95,9 +95,22 @@ def create_tables():
         except Exception:
             conn.rollback()
 
+    try:
+        cursor.execute("ALTER TABLE sessions ADD COLUMN student_name TEXT")
+        conn.commit()
+        print("✅ Migrated: added student_name to sessions")
+    except Exception:
+        conn.rollback()
+
+    try:
+        cursor.execute("ALTER TABLE sessions ADD COLUMN student_gender TEXT")
+        conn.commit()
+        print("✅ Migrated: added student_gender to sessions")
+    except Exception:
+        conn.rollback()
+
     conn.close()
     print("✅ Database tables ready")
-
 def create_session(session_id: str, title: str, user_id: int):
     conn = create_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
@@ -602,3 +615,39 @@ def update_conversation_stage(session_id: str, stage: str):
 
     conn.commit()
     conn.close()
+def save_student_identity(session_id: str, student_name: str, student_gender: str):
+    conn = create_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+    cursor.execute("""
+        UPDATE sessions
+        SET student_name=%s,
+            student_gender=%s
+        WHERE session_id=%s
+    """, (
+        student_name,
+        student_gender,
+        session_id
+    ))
+
+    conn.commit()
+    conn.close()
+
+
+def get_student_identity(session_id: str):
+    conn = create_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+    cursor.execute("""
+        SELECT student_name, student_gender
+        FROM sessions
+        WHERE session_id=%s
+    """, (session_id,))
+
+    row = cursor.fetchone()
+    conn.close()
+
+    if row:
+        return row["student_name"], row["student_gender"]
+
+    return None, None
