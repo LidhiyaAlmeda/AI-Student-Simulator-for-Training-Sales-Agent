@@ -921,12 +921,25 @@ elif st.session_state.page == "chat":
         "<p style='color:white; font-size:14px; font-weight:600; margin-bottom:4px;'>🎙️ Voice Input</p>",
         unsafe_allow_html=True
     )
+    st.markdown("""
+    <style>
+    div[data-testid="stCustomComponentV1"] iframe {
+        background: transparent !important;
+        border: none !important;
+        height: 60px !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
     col_mic, col_spacer = st.columns([1, 5])
     with col_mic:
         audio_bytes = audio_recorder(
             pause_threshold=2.5,
             sample_rate=16000,
+            recording_color="#4facfe",
+            neutral_color="#4facfe",
+            icon_name="microphone",
+            icon_size="2x",
             key=f"mic_{st.session_state.mic_key}"
         )
    
