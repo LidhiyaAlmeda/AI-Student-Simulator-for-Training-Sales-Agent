@@ -1,3 +1,42 @@
+from fastapi import APIRouter
+from pydantic import BaseModel
+from typing import Optional
+import uuid
+
+router = APIRouter()
+
+# Constants
+USE_LLM = True
+CLOSING = "closing"
+FINISHED = "finished"
+CLOSING_THRESHOLD = 10  # adjust if needed
+
+class ChatRequest(BaseModel):
+    message: str
+    persona: Optional[str] = "Beginner"
+    course: Optional[str] = ""
+    qualification: Optional[str] = ""
+    subject: Optional[str] = ""
+    session_id: Optional[str] = None
+    user_id: Optional[int] = None
+
+
+def generate_session_id():
+    return str(uuid.uuid4())
+
+
+def create_session(session_id, title, user_id):
+    from database import create_new_session
+    create_new_session(session_id, title, user_id)
+
+
+def should_start_closing(chat_count):
+    return chat_count >= CLOSING_THRESHOLD
+
+
+def fallback_response(message, course, retrieved_text):
+    return f"Based on {course}: {retrieved_text}"
+    
 @router.post("/")
 def chat(user_message: ChatRequest):
     try:
@@ -64,16 +103,16 @@ def chat(user_message: ChatRequest):
 
         if USE_LLM:
             llm_data = get_llm_response(
-    user_message=message,
-    retrieved_text=f"Course: {selected_course}\n{retrieved_text}",
-    persona=selected_persona,
-    qualification=selected_qualification,
-    subject=selected_subject,
-    history=conversation_history,
-    stage=conversation_stage,
-    chat_count=chat_count,
-    session_id=session_id
-)
+                user_message=message,
+                retrieved_text=f"Course: {selected_course}\n{retrieved_text}",
+                persona=selected_persona,
+                qualification=selected_qualification,
+                subject=selected_subject,
+                history=conversation_history,
+                stage=conversation_stage,
+                chat_count=chat_count,
+                session_id=session_id
+            )
             response_text = llm_data.get("response", "")
             student_name = llm_data.get("student_name", "")
             student_gender = llm_data.get("student_gender", "")
