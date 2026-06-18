@@ -7,8 +7,6 @@ from groq import Groq
 from ai_logic.student_profile import generate_student
 from database import get_student_identity, save_student_identity
 
-
-
 load_dotenv()
 
 def get_client():
@@ -37,6 +35,12 @@ def get_llm_response(
     session_id
 ):
     if client is None:
+        return {
+            "response": "LLM not available.",
+            "student_name": "Student",
+            "student_gender": "unknown"
+        }
+
         # Get existing student identity for this session
     student_name, student_gender = get_student_identity(session_id)
 
