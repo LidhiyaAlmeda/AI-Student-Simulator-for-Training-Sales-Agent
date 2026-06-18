@@ -19,7 +19,7 @@ client = get_client()
 GROQ_MODEL = "llama-3.1-8b-instant"
 
 if client:
-    print(f"✅ LLM ready (Acting as {student_name})")
+    print("✅ LLM ready")
 else:
     print("⚠️ No API key found")
 
