@@ -183,3 +183,14 @@ def chat(user_message: ChatRequest):
     except Exception as e:
         print("Error:", e)
         return {"error": f"Something went wrong: {str(e)}"}
+
+@router.get("/sessions")
+def get_sessions(user_id: int):
+    from database import get_user_sessions
+    return get_user_sessions(user_id)
+
+
+@router.get("/dashboard")
+def get_dashboard(user_id: int):
+    from database import get_user_dashboard
+    return get_user_dashboard(user_id)
