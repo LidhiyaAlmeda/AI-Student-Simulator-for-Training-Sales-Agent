@@ -154,19 +154,20 @@ def chat(user_message: ChatRequest):
                 update_conversation_stage(session_id, "course_discussion")
 
         elif conversation_stage == "closing":
-    finish_keywords = [
-        "yes i want to join",
-        "i'm ready to enroll",
-        "proceed with admission",
-        "confirm my admission",
-        "book my seat",
-        "start my admission",
-        "i'll take this course"
-    ]
-
-    if any(word in message.lower() for word in finish_keywords):
-        update_conversation_stage(session_id, FINISHED)
-        conversation_stage = FINISHED
+            finish_keywords = [
+                "yes i want to join",
+                "i'm ready to enroll",
+                "proceed with admission",
+                "confirm my admission",
+                "book my seat",
+                "start my admission",
+                "i'll take this course"
+            ]
+            
+            if any(word in message.lower() for word in finish_keywords):
+                update_conversation_stage(session_id, FINISHED)
+                conversation_stage = FINISHED
+                
         # 8. Generate voice
         audio_file = convert_text_to_speech(
             text=response_text,
