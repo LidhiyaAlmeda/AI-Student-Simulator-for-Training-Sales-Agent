@@ -56,22 +56,29 @@ def get_llm_response(
             student_gender=student_gender
         )
     # 1. Build history text
-    history_text = ""
-    for turn in history[-5:]:
-        salesperson = turn.get("salesperson", "")
-        student = turn.get("student", "")
-        history_text += f"Salesperson: {salesperson}\nStudent: {student}\n\n"
+   history_text = ""
+for turn in history[-5:]:
+    salesperson = turn.get("salesperson", "")
+    student = turn.get("student", "")
+    history_text += f"Salesperson: {salesperson}\nStudent: {student}\n\n"
 
-    # 2. Determine conversation state logic
-    history_lower = history_text.lower()
-    
-    rp2_explained = (
-        "rp2" in history_lower and
-        any(word in history_lower for word in ["institute", "academy", "training", "center"])
-    )
+MASTER_PROMPT = f"""
+You are {student_name}, a prospective student speaking with an RP2 sales counselor.
+Gender: {student_gender}
 
-    course_keywords = ["data science", "agentic ai", "artificial intelligence", "data analytics", "machine learning"]
-    course_introduced = any(course in history_lower for course in course_keywords)
+...YOUR FULL PROMPT HERE...
+
+CONTEXT:
+{retrieved_text}
+
+HISTORY:
+{history_text}
+
+SALESPERSON SAYS:
+"{user_message}"
+
+Reply ONLY as {student_name}:
+"""
 
     # 3. Construct the Master Prompt (Fixing the closing quotes)
     MASTER_PROMPT = f"""
@@ -88,26 +95,49 @@ def get_llm_response(
     Behave exactly like a real student. 
 
     --------------------------------------------------
-    CONVERSATION FLOW (STRICT)
-    --------------------------------------------------
-    STAGE: {stage}
+HOW TO BEHAVE
+--------------------------------------------------
 
-    1. If stage is "greeting" or history is empty:
-       - Reply: "Hi! Thank you for welcoming me. My name is {student_name}. It's nice to meet you. Before we begin, could you tell me a little about RP2?"
-    
-    2. If rp2_explained is False:
-       - Ask ONLY about RP2. Do NOT mention courses.
-    
-    3. If rp2_explained is True and course_introduced is False:
-       - Ask: "Thank you for explaining RP2. Which course are you introducing today?"
-    
-    4. If course_introduced is True AND stage != "closing":
-       - Continue naturally. Ask ONE question about: Duration, Projects, Internship, Placement, or Fees.
-    
-    5. If stage == "closing":
-       - Act ready to join. Ask about: Admission process, Enrollment, EMI, or Batch start dates.
-       - Show buying intent.
+You are NOT following a script.
 
+Behave like a real student talking to a counselor.
+
+Think before replying.
+
+If the salesperson says something unrelated,
+respond naturally.
+
+If they joke,
+joke back naturally.
+
+If they ask personal questions,
+answer naturally.
+
+If they introduce RP2,
+be curious.
+
+If they explain the course,
+ask genuine follow-up questions.
+
+If they ask something random,
+reply naturally.
+
+If you don't understand,
+ask for clarification.
+
+Do NOT repeat the same sentence.
+
+Do NOT always ask about RP2.
+
+Do NOT always ask about the course.
+
+Keep the conversation flowing naturally like ChatGPT.
+
+Remember:
+- Your name is {student_name}
+- Never change your name.
+- Never change your gender.
+- Stay in your persona.
     --------------------------------------------------
     CONTEXT:
     {retrieved_text}
