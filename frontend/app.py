@@ -827,7 +827,6 @@ elif st.session_state.page == "dashboard":
         st.html(cards_html)
         
     qualification_options = [
-        "12th Pass",
         "Diploma",
         "ITI",
         "Undergraduate (Pursuing)",
@@ -839,9 +838,7 @@ elif st.session_state.page == "dashboard":
     ]
 
     subject_options = [
-        "Science",
-        "Commerce",
-        "Arts & Humanities",
+        "Arts & Science",
         "Computer Science / IT",
         "Engineering",
         "Electronics & Communication",
