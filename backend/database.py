@@ -651,3 +651,23 @@ def get_student_identity(session_id: str):
         return row["student_name"], row["student_gender"]
 
     return None, None
+
+def delete_session(session_id: str, user_id: int):
+    conn = create_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cursor.execute(
+            "DELETE FROM conversations WHERE session_id = %s",
+            (session_id,)
+        )
+        cursor.execute(
+            "DELETE FROM sessions WHERE session_id = %s AND user_id = %s",
+            (session_id, user_id)
+        )
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        cursor.close()
+        conn.close()
