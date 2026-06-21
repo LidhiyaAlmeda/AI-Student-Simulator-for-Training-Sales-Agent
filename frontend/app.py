@@ -37,6 +37,7 @@ get_all_users = _mod.get_all_users
 get_user_dashboard = _mod.get_user_dashboard
 get_course_metrics = _mod.get_course_metrics
 reset_password = _mod.reset_password 
+delete_chat_session = _mod.delete_chat_session
 
 _pc_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "persona_config.py")
 _spec2 = importlib.util.spec_from_file_location("persona_config", _pc_path)
