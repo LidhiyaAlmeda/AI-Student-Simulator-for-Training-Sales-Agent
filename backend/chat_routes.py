@@ -258,3 +258,22 @@ def dashboard(user_id: int):
 @router.get("/course-metrics")
 def course_metrics(user_id: int):
     return {"course_metrics": get_course_metrics(user_id)}
+
+@router.patch("/sessions/{session_id}/rename")
+def rename_session(session_id: str, body: dict):
+    from database import rename_session as db_rename_session
+    new_title = body.get("title", "").strip()
+    if not new_title:
+        raise HTTPException(status_code=400, detail="Title cannot be empty")
+    db_rename_session(session_id, new_title)
+    return {"success": True}
+
+
+@router.delete("/sessions/{session_id}")
+def delete_session(session_id: str, user_id: int):
+    from database import delete_session as db_delete_session
+    try:
+        db_delete_session(session_id, user_id)
+        return {"success": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
