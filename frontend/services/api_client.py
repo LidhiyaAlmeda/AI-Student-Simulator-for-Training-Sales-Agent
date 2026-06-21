@@ -52,7 +52,7 @@ def get_session_conversation(session_id: str, user_id: int) -> list:
     return response.json().get("history", [])
 
 def rename_chat_session(session_id: str, title: str):
-    response = requests.put(f"{BACKEND_URL}/session/rename/{session_id}", json={"title": title})
+    response = requests.patch(f"{BACKEND_URL}/chat/session/{session_id}/rename", json={"title": title})
     response.raise_for_status()
     return response.json()
 
