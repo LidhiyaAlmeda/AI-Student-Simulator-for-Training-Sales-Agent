@@ -487,26 +487,31 @@ def get_user_dashboard(user_id: int):
     }
 
 def get_course_metrics(user_id: int):
-
     conn = create_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
 
     cursor.execute("""
         SELECT
-            first_c.course,
-            COUNT(DISTINCT s.session_id) AS total_sessions,
-            ROUND(AVG(f.final_score)::numeric, 1) AS avg_score
-        FROM sessions s
-        JOIN feedback f ON f.session_id = s.session_id
-        JOIN LATERAL (
-            SELECT course FROM conversations
-            WHERE conversations.session_id = s.session_id
-            AND conversations.course != ''
-            ORDER BY id ASC
-            LIMIT 1
-        ) first_conv ON true
-        WHERE s.user_id = %s
-        GROUP BY first_conv.course
+            sub.course,
+            COUNT(DISTINCT sub.session_id) AS total_sessions,
+            ROUND(AVG(sub.final_score)::numeric, 1) AS avg_score
+        FROM (
+            SELECT
+                s.sessions s,
+                f.final_score,
+                (
+                    SELECT course FROM conversations
+                    WHERE conversations.session_id = s.session_id
+                    AND conversations.course != ''
+                    ORDER BY id ASC
+                    LIMIT 1
+                ) AS course
+            FROM sessions s
+            JOIN feedback f ON f.session_id = s.session_id
+            WHERE s.user_id = %s
+        ) sub
+        WHERE sub.course IS NOT NULL
+        GROUP BY sub.course
         ORDER BY total_sessions DESC
     """, (user_id,))
 
