@@ -12,8 +12,6 @@ from auth_routes import router as auth_router
 from feedback_routes import router as feedback_router
 from voice_routes import router as voice_router
 from database import create_tables, rename_session
-from user_routes import router as user_router
-app.include_router(user_router, prefix="/users", tags=["Users"])
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
