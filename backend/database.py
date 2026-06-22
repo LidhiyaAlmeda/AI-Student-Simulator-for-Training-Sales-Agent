@@ -497,7 +497,7 @@ def get_course_metrics(user_id: int):
             ROUND(AVG(sub.final_score)::numeric, 1) AS avg_score
         FROM (
             SELECT
-                s.sessions s,
+                s.sessions_id,
                 f.final_score,
                 (
                     SELECT course FROM conversations
