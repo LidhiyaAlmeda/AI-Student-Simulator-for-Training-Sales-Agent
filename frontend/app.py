@@ -1,3 +1,4 @@
+
 import requests
 import os
 import sys
@@ -106,10 +107,15 @@ section[data-testid="stSidebar"] * {
     color: white !important;
 }
 
-/* ── HIDE SIDEBAR TOGGLE BUTTONS ── */
+/* ── HIDE SIDEBAR TOGGLE BUTTONS (the « / » collapse arrow) ── */
 [data-testid="collapsedControl"] { display: none !important; }
 button[aria-label="Close sidebar"] { display: none !important; }
 button[aria-label="Open sidebar"] { display: none !important; }
+[data-testid="stSidebarCollapseButton"] { display: none !important; }
+[data-testid="stSidebarCollapsedControl"] { display: none !important; }
+[data-testid="stSidebarNavCollapseIcon"] { display: none !important; }
+section[data-testid="stSidebar"] button[kind="header"] { display: none !important; }
+section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] button { display: none !important; }
 
 /* ── SIDEBAR BUTTONS ── */
 section[data-testid="stSidebar"] .stButton button[data-testid="baseButton-secondary"],
@@ -194,6 +200,12 @@ section[data-testid="stSidebar"] [data-testid="stPopover"] button {
     border-radius: 12px !important;
     padding: 10px !important;
 }
+/* No avatar icons/emojis in chat bubbles — text only */
+[data-testid="stChatMessageAvatarUser"],
+[data-testid="stChatMessageAvatarAssistant"],
+[data-testid="stChatMessage"] [data-testid^="stChatMessageAvatar"] {
+    display: none !important;
+}
 
 /* ── DIVIDER ── */
 hr { border-color: rgba(255,255,255,0.15) !important; }
@@ -261,7 +273,51 @@ header {visibility: hidden;}
 
 </style>
 """, unsafe_allow_html=True)
+# వెతికే కీవర్డ్: st.set_page_config
+st.markdown("""
+<style>
+/* 1. Cursor (caret) visibility fix for Email & Password inputs */
+.stTextInput > div > div > input {
+    caret-color: #111111 !important;
+}
+.stTextInput > div > div > input:focus {
+    caret-color: #111111 !important;
+    outline: 2px solid #4facfe !important;
+    box-shadow: 0 0 0 3px rgba(79,172,254,0.35) !important;
+}
 
+/* 2. Hide the 'Press Enter to apply' helper text under inputs */
+div[data-testid="InputInstructions"] { display: none !important; }
+[data-testid="stTextInput"] small { display: none !important; }
+
+/* 3. Fix double-tap needed to toggle password visibility on mobile.
+      The eye icon's inner <svg> was intercepting the first tap, so the
+      button needed a second tap to register the click. */
+[data-testid="stTextInput"] button {
+    touch-action: manipulation !important;
+}
+[data-testid="stTextInput"] button svg {
+    pointer-events: none !important;
+}
+
+/* 4. Chat-history rename (⋮) popover: keep it usable across different
+      screen sizes / OS font scales instead of clipping or shrinking */
+section[data-testid="stSidebar"] [data-testid="stPopover"] button {
+    min-width: 32px !important;
+    min-height: 32px !important;
+}
+div[data-testid="stPopoverBody"] {
+    min-width: 220px !important;
+    max-width: 90vw !important;
+    width: max-content !important;
+}
+@media (max-width: 480px) {
+    div[data-testid="stPopoverBody"] {
+        max-width: 85vw !important;
+    }
+}
+</style>
+""", unsafe_allow_html=True)
 
 # SESSION STATE
 # =========================================================
@@ -347,36 +403,60 @@ def save_chat_history():
 # =================================================
 
 def reset_password(email, new_password):
-    response = requests.post(
-        f"{BACKEND_URL}/auth/reset-password",
-        json={"email": email, "new_password": new_password}
-    )
-    return response.json()
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/auth/reset-password",
+            json={"email": email, "new_password": new_password},
+            timeout=20
+        )
+        return response.json()
+    except requests.exceptions.Timeout:
+        return {"success": False, "message": "Server is taking too long to respond. Please try again."}
+    except requests.exceptions.RequestException as e:
+        return {"success": False, "message": f"Connection error: {e}"}
 
 # =================================================
 # ADMIN PASSWORD FUNCTION
 # =================================================
 
 def admin_login_user(email, password):
-    response = requests.post(
-        f"{BACKEND_URL}/auth/admin/login",
-        json={"email": email, "password": password}
-    )
-    return response.json()
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/auth/admin/login",
+            json={"email": email, "password": password},
+            timeout=20
+        )
+        return response.json()
+    except requests.exceptions.Timeout:
+        return {"success": False, "message": "Server is taking too long to respond. Please try again."}
+    except requests.exceptions.RequestException as e:
+        return {"success": False, "message": f"Connection error: {e}"}
 
 def admin_register_user(name, email, password):
-    response = requests.post(
-        f"{BACKEND_URL}/auth/admin/register",
-        json={"name": name, "email": email, "password": password}
-    )
-    return response.json()
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/auth/admin/register",
+            json={"name": name, "email": email, "password": password},
+            timeout=20
+        )
+        return response.json()
+    except requests.exceptions.Timeout:
+        return {"success": False, "message": "Server is taking too long to respond. Please try again."}
+    except requests.exceptions.RequestException as e:
+        return {"success": False, "message": f"Connection error: {e}"}
 
 def admin_reset_password(email, new_password):
-    response = requests.post(
-        f"{BACKEND_URL}/auth/admin/reset-password",
-        json={"email": email, "new_password": new_password}
-    )
-    return response.json()
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/auth/admin/reset-password",
+            json={"email": email, "new_password": new_password},
+            timeout=20
+        )
+        return response.json()
+    except requests.exceptions.Timeout:
+        return {"success": False, "message": "Server is taking too long to respond. Please try again."}
+    except requests.exceptions.RequestException as e:
+        return {"success": False, "message": f"Connection error: {e}"}
 
 # =================================================
 # SECURITY CHECK
@@ -396,6 +476,12 @@ if (st.session_state.authenticated and st.session_state.page in ["dashboard", "c
             st.image(logo_path, width=220)
         st.markdown(f"### Welcome\n{st.session_state.user_name}")
 
+        # BACK BUTTON (only shown while inside an active chat session)
+        if st.session_state.page == "chat":
+            if st.button("⬅ Back", use_container_width=True, key="btn_sidebar_back"):
+                st.session_state.page = "dashboard"
+                st.rerun()
+
         # NEW SESSION BUTTON
         if st.button("New Session", use_container_width=True):
             st.session_state.messages = []
@@ -413,7 +499,7 @@ if (st.session_state.authenticated and st.session_state.page in ["dashboard", "c
                     title = s.get("title", "New Session")
                     display_title = title if len(title) <= 28 else title[:28] + "..."
                     
-                    c1, c2 = st.columns([10, 1], gap="small")
+                    c1, c2 = st.columns([8, 3], gap="small")
                     with c1:
                         if st.button(display_title, key=f"load_{s['session_id']}", use_container_width=True, help=title):
                             history = get_session_conversation(s["session_id"], st.session_state.user_id)
@@ -556,7 +642,8 @@ if st.session_state.page == "landing":
             elif not password:
                 st.error("Please enter your password.")
             else:
-                result = login_user(email=email, password=password)
+                with st.spinner("Logging in..."):
+                    result = login_user(email=email, password=password)
                 if result.get("success"):
                     st.session_state.authenticated = True
                     st.session_state.user_name = result["name"]
@@ -639,7 +726,8 @@ elif st.session_state.page == "admin_login":
                 elif not password:
                     st.error("Please enter your password.")
                 else:
-                    result = admin_login_user(email=email, password=password)
+                    with st.spinner("Logging in..."):
+                        result = admin_login_user(email=email, password=password)
                     if result.get("success"):
                         st.session_state.authenticated = True
                         st.session_state.role          = "admin"
@@ -663,7 +751,6 @@ elif st.session_state.page == "admin_login":
         if st.button("Don't Have An Account? Sign Up", key="btn_goto_admin_signup"):
             st.session_state.page = "admin_signup"
             st.rerun()
-
 
 # =========================================================
 # ADMIN SIGNUP PAGE
@@ -921,10 +1008,10 @@ elif st.session_state.page == "chat":
 
     st.markdown("---")
 
-    # SHOW CHAT HISTORY
+    # SHOW CHAT HISTORY (ChatGPT-style bubbles)
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
-            st.write(msg["content"])
+            st.markdown(msg["content"])
 
     st.html(
         """
@@ -937,42 +1024,83 @@ elif st.session_state.page == "chat":
         """
     )
 
-    st.markdown("---")
-
-    # INPUTS
-    prompt = st.text_input("Type your pitch:", key="text_input")
     st.markdown("""
     <style>
-    /* Make the recorder iframe blend into the dark background */
+    /* Make the recorder a small round icon button, not a big empty box */
     div[data-testid="stCustomComponentV1"] > iframe {
         background-color: transparent !important;
         color-scheme: dark !important;
         border: none !important;
         outline: none !important;
-        width: 60px !important;
-        min-height: 60px !important;
-        height: 60px !important;
+        width: 42px !important;
+        min-width: 42px !important;
+        min-height: 42px !important;
+        height: 42px !important;
         overflow: hidden !important;
     }
     div[data-testid="stCustomComponentV1"] {
         background: transparent !important;
         border: none !important;
+        width: 42px !important;
+        min-width: 42px !important;
+        display: flex !important;
+        justify-content: center !important;
+    }
+    /* Merge the text box + send arrow into one pill, like a normal chat app */
+    div[data-testid="stForm"] {
+        border: none !important;
+        padding: 0 !important;
+        background: transparent !important;
+    }
+    /* Send arrow button — give it a visible color so it doesn't look
+       like a blank white box */
+    div[data-testid="stFormSubmitButton"] button {
+        background: linear-gradient(90deg, #4facfe, #00f2fe) !important;
+        color: #06202b !important;
+        font-weight: 800 !important;
+        font-size: 18px !important;
+        border: none !important;
+        border-radius: 10px !important;
+        height: 44px !important;
+    }
+    /* Keep the text box, send button, and mic all on the same visual
+       line instead of the mic/send sitting lower than the input */
+    div[data-testid="stHorizontalBlock"] {
+        align-items: center !important;
     }
     </style>
     """, unsafe_allow_html=True)
 
-    col1, col2 = st.columns(2)
-    with col1:
+    # MESSAGE ROW — text box + send arrow (Enter key submits) with the
+    # mic sitting right at the end of the row, the same way WhatsApp /
+    # most chat apps place it next to the message field.
+    text_col, mic_col = st.columns([9, 1])
+
+    with text_col:
+        with st.form(key="pitch_form", clear_on_submit=True):
+            field_col, send_col = st.columns([11, 1])
+            with field_col:
+                prompt = st.text_input(
+                    "Type your pitch",
+                    key="pitch_text",
+                    placeholder="Type your pitch...",
+                    label_visibility="collapsed"
+                )
+            with send_col:
+                submitted = st.form_submit_button("➤", use_container_width=True)
+
+    with mic_col:
         audio_bytes = audio_recorder(
+            text="",
             pause_threshold=2.5,
             sample_rate=16000,
             recording_color="#4facfe",
             neutral_color="#4facfe",
             icon_name="microphone",
-            icon_size="2x",
+            icon_size="1x",
             key=f"mic_{st.session_state.mic_key}"
         )
-   
+
     audio_text = None
     if audio_bytes and len(audio_bytes) > 1000:
         try:
@@ -986,22 +1114,10 @@ elif st.session_state.page == "chat":
         except Exception as e:
             st.warning(f"Transcription error: {e}")
 
-    col1, col2 = st.columns(2)
-    with col1:
-        send_btn = st.button("Send Message")
-    with col2:
-        end_btn = st.button("End Session & Get Feedback")
-
-    # END SESSION
-    if end_btn:
-        save_chat_history()
-        st.session_state.show_feedback = True
-        st.rerun()
-
     # DETECT INPUT
     user_input = None
 
-    if send_btn and prompt:
+    if submitted and prompt:
         user_input = prompt.strip()
     elif audio_text:
         cleaned = audio_text.strip()
@@ -1030,7 +1146,7 @@ elif st.session_state.page == "chat":
         })
 
         with st.chat_message("user"):
-            st.write(user_input)
+            st.markdown(user_input)
 
         try:
             result = get_ai_response(
@@ -1055,7 +1171,7 @@ elif st.session_state.page == "chat":
             audio_url     = None
 
         with st.chat_message("assistant"):
-            st.write(response_text)
+            st.markdown(response_text)
             if audio_url:
                 autoplay_audio_from_url(audio_url)
             else:
@@ -1066,7 +1182,7 @@ elif st.session_state.page == "chat":
             "content": response_text
         })
 
-        if send_btn:
+        if submitted:
             st.session_state.mic_key += 1
 
     # FEEDBACK SECTION
@@ -1107,6 +1223,13 @@ elif st.session_state.page == "chat":
 
             except Exception as e:
                 st.error(f"Feedback Error: {e}")
+
+    # END SESSION — placed last, below the message box and any feedback
+    st.markdown("---")
+    if st.button("End Session & Get Feedback", use_container_width=True, key="btn_end_session"):
+        save_chat_history()
+        st.session_state.show_feedback = True
+        st.rerun()
 
 # =========================================================
 # ADMIN PAGE
@@ -1282,4 +1405,3 @@ elif st.session_state.page == "admin":
 
     except Exception as e:
         st.error(f"Could not load admin dashboard: {e}")
-
