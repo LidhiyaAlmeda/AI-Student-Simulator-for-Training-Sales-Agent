@@ -85,39 +85,76 @@ footer { display: none !important; }
     background: transparent !important;
 }
 
-/* ── FORCE SIDEBAR ALWAYS OPEN ── */
-section[data-testid="stSidebar"] {
-    background-color: #0b1220 !important;
-    min-width: 300px !important;
-    width: 300px !important;
-    transform: translateX(0) !important;
-    visibility: visible !important;
-    display: block !important;
-    margin-left: 0 !important;
+/* ── FORCE SIDEBAR ALWAYS OPEN (desktop only) ── */
+@media (min-width: 769px) {
+    section[data-testid="stSidebar"] {
+        background-color: #0b1220 !important;
+        min-width: 300px !important;
+        width: 300px !important;
+        transform: translateX(0) !important;
+        visibility: visible !important;
+        display: block !important;
+        margin-left: 0 !important;
+    }
+    section[data-testid="stSidebar"][aria-expanded="false"] {
+        min-width: 300px !important;
+        width: 300px !important;
+        transform: translateX(0) !important;
+        margin-left: 0 !important;
+        display: block !important;
+        visibility: visible !important;
+    }
 }
-section[data-testid="stSidebar"][aria-expanded="false"] {
-    min-width: 300px !important;
-    width: 300px !important;
-    transform: translateX(0) !important;
-    margin-left: 0 !important;
-    display: block !important;
-    visibility: visible !important;
+@media (max-width: 768px) {
+    section[data-testid="stSidebar"] {
+        background-color: #0b1220 !important;
+    }
 }
-section[data-testid="stSidebar"] * {
+section[data-testid="stSidebar"] *{
     color: white !important;
 }
 
-/* ── HIDE SIDEBAR TOGGLE BUTTONS (the « / » collapse arrow) ── */
-[data-testid="collapsedControl"] { display: none !important; }
-button[aria-label="Close sidebar"] { display: none !important; }
-button[aria-label="Open sidebar"] { display: none !important; }
-[data-testid="stSidebarCollapseButton"] { display: none !important; }
-[data-testid="stSidebarCollapsedControl"] { display: none !important; }
-[data-testid="stSidebarNavCollapseIcon"] { display: none !important; }
-section[data-testid="stSidebar"] button[kind="header"] { display: none !important; }
-section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] button { display: none !important; }
+/* ── SIDEBAR TOGGLE BUTTON ──
+   Desktop: sidebar is forced open, so the toggle is hidden (nothing to
+   toggle). Mobile: the sidebar covers the whole screen, so the toggle
+   is restored and re-styled — this is the open/close control, same
+   idea as the hamburger/arrow in ChatGPT or Gemini. */
+@media (min-width: 769px) {
+    [data-testid="collapsedControl"] { display: none !important; }
+    button[aria-label="Close sidebar"] { display: none !important; }
+    button[aria-label="Open sidebar"] { display: none !important; }
+    [data-testid="stSidebarCollapseButton"] { display: none !important; }
+    [data-testid="stSidebarCollapsedControl"] { display: none !important; }
+    [data-testid="stSidebarNavCollapseIcon"] { display: none !important; }
+    section[data-testid="stSidebar"] button[kind="header"] { display: none !important; }
+    section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] button { display: none !important; }
+}
+@media (max-width: 768px) {
+    [data-testid="collapsedControl"],
+    [data-testid="stSidebarCollapsedControl"],
+    button[aria-label="Close sidebar"],
+    button[aria-label="Open sidebar"],
+    [data-testid="stSidebarCollapseButton"],
+    section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] button {
+        display: flex !important;
+        visibility: visible !important;
+        background: rgba(79,172,254,0.9) !important;
+        border-radius: 8px !important;
+        color: white !important;
+        z-index: 999999 !important;
+    }
+}
 
 /* ── SIDEBAR BUTTONS ── */
+/* Keep chat-history rows (title + ⋮ menu) on one line on mobile too,
+   instead of the rename controls dropping to a second row */
+section[data-testid="stSidebar"] div[data-testid="stHorizontalBlock"] {
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+}
+section[data-testid="stSidebar"] div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+    min-width: 0 !important;
+}
 section[data-testid="stSidebar"] .stButton button[data-testid="baseButton-secondary"],
 section[data-testid="stSidebar"] .stButton button[data-testid="baseButton-secondaryFormSubmit"],
 section[data-testid="stSidebar"] .stButton button {
