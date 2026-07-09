@@ -116,9 +116,9 @@ section[data-testid="stSidebar"] *{
 
 /* ── SIDEBAR TOGGLE BUTTON ──
    Desktop: sidebar is forced open, so the toggle is hidden (nothing to
-   toggle). Mobile: the sidebar covers the whole screen, so the toggle
-   is restored and re-styled — this is the open/close control, same
-   idea as the hamburger/arrow in ChatGPT or Gemini. */
+   toggle). Mobile: left fully untouched so Streamlit's own native
+   open/close control (equivalent to the hamburger in ChatGPT/Gemini)
+   keeps working reliably. */
 @media (min-width: 769px) {
     [data-testid="collapsedControl"] { display: none !important; }
     button[aria-label="Close sidebar"] { display: none !important; }
@@ -128,21 +128,6 @@ section[data-testid="stSidebar"] *{
     [data-testid="stSidebarNavCollapseIcon"] { display: none !important; }
     section[data-testid="stSidebar"] button[kind="header"] { display: none !important; }
     section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] button { display: none !important; }
-}
-@media (max-width: 768px) {
-    [data-testid="collapsedControl"],
-    [data-testid="stSidebarCollapsedControl"],
-    button[aria-label="Close sidebar"],
-    button[aria-label="Open sidebar"],
-    [data-testid="stSidebarCollapseButton"],
-    section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] button {
-        display: flex !important;
-        visibility: visible !important;
-        background: rgba(79,172,254,0.9) !important;
-        border-radius: 8px !important;
-        color: white !important;
-        z-index: 999999 !important;
-    }
 }
 
 /* ── SIDEBAR BUTTONS ── */
@@ -1105,38 +1090,58 @@ elif st.session_state.page == "chat":
     div[data-testid="stHorizontalBlock"] {
         align-items: center !important;
     }
+    /* Chat message row: never stack into separate lines, even on
+       narrow mobile screens */
+    div[class*="st-key-chat_input_row"] div[data-testid="stHorizontalBlock"],
+    div[class*="st-key-chat_input_row"] div[data-testid="stForm"] div[data-testid="stHorizontalBlock"] {
+        flex-wrap: nowrap !important;
+    }
+    div[class*="st-key-chat_input_row"] div[data-testid="column"] {
+        min-width: 0 !important;
+    }
+    @media (max-width: 768px) {
+        div[class*="st-key-chat_input_row"] input[type="text"] {
+            font-size: 14px !important;
+            padding: 8px !important;
+        }
+        div[class*="st-key-chat_input_row"] div[data-testid="stFormSubmitButton"] button {
+            font-size: 14px !important;
+            padding: 0 !important;
+        }
+    }
     </style>
     """, unsafe_allow_html=True)
 
     # MESSAGE ROW — text box + send arrow (Enter key submits) with the
     # mic sitting right at the end of the row, the same way WhatsApp /
     # most chat apps place it next to the message field.
-    text_col, mic_col = st.columns([9, 1])
+    with st.container(key="chat_input_row"):
+        text_col, mic_col = st.columns([9, 1])
 
-    with text_col:
-        with st.form(key="pitch_form", clear_on_submit=True):
-            field_col, send_col = st.columns([11, 1])
-            with field_col:
-                prompt = st.text_input(
-                    "Type your pitch",
-                    key="pitch_text",
-                    placeholder="Type your pitch...",
-                    label_visibility="collapsed"
-                )
-            with send_col:
-                submitted = st.form_submit_button("➤", use_container_width=True)
+        with text_col:
+            with st.form(key="pitch_form", clear_on_submit=True):
+                field_col, send_col = st.columns([11, 1])
+                with field_col:
+                    prompt = st.text_input(
+                        "Type your pitch",
+                        key="pitch_text",
+                        placeholder="Type your pitch...",
+                        label_visibility="collapsed"
+                    )
+                with send_col:
+                    submitted = st.form_submit_button("➤", use_container_width=True)
 
-    with mic_col:
-        audio_bytes = audio_recorder(
-            text="",
-            pause_threshold=2.5,
-            sample_rate=16000,
-            recording_color="#4facfe",
-            neutral_color="#4facfe",
-            icon_name="microphone",
-            icon_size="1x",
-            key=f"mic_{st.session_state.mic_key}"
-        )
+        with mic_col:
+            audio_bytes = audio_recorder(
+                text="",
+                pause_threshold=2.5,
+                sample_rate=16000,
+                recording_color="#4facfe",
+                neutral_color="#4facfe",
+                icon_name="microphone",
+                icon_size="1x",
+                key=f"mic_{st.session_state.mic_key}"
+            )
 
     audio_text = None
     if audio_bytes and len(audio_bytes) > 1000:
