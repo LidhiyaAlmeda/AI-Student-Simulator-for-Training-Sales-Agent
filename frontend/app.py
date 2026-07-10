@@ -105,30 +105,21 @@ footer { display: none !important; }
         visibility: visible !important;
     }
 }
-@media (max-width: 768px) {
-    section[data-testid="stSidebar"] {
-        background-color: #0b1220 !important;
-    }
-}
 section[data-testid="stSidebar"] *{
     color: white !important;
 }
 
-/* ── SIDEBAR TOGGLE BUTTON ──
-   Desktop: sidebar is forced open, so the toggle is hidden (nothing to
-   toggle). Mobile: left fully untouched so Streamlit's own native
-   open/close control (equivalent to the hamburger in ChatGPT/Gemini)
-   keeps working reliably. */
-@media (min-width: 769px) {
-    [data-testid="collapsedControl"] { display: none !important; }
-    button[aria-label="Close sidebar"] { display: none !important; }
-    button[aria-label="Open sidebar"] { display: none !important; }
-    [data-testid="stSidebarCollapseButton"] { display: none !important; }
-    [data-testid="stSidebarCollapsedControl"] { display: none !important; }
-    [data-testid="stSidebarNavCollapseIcon"] { display: none !important; }
-    section[data-testid="stSidebar"] button[kind="header"] { display: none !important; }
-    section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] button { display: none !important; }
-}
+/* ── NATIVE SIDEBAR COLLAPSE ARROW — hidden; the app has its own
+   ☰ Menu / ✕ Close Menu button (see MOBILE SIDEBAR TOGGLE) that
+   drives the real sidebar's visibility on mobile instead ── */
+[data-testid="collapsedControl"] { display: none !important; }
+button[aria-label="Close sidebar"] { display: none !important; }
+button[aria-label="Open sidebar"] { display: none !important; }
+[data-testid="stSidebarCollapseButton"] { display: none !important; }
+[data-testid="stSidebarCollapsedControl"] { display: none !important; }
+[data-testid="stSidebarNavCollapseIcon"] { display: none !important; }
+section[data-testid="stSidebar"] button[kind="header"] { display: none !important; }
+section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] button { display: none !important; }
 
 /* ── SIDEBAR BUTTONS ── */
 /* Keep chat-history rows (title + ⋮ menu) on one line on mobile too,
@@ -362,7 +353,8 @@ defaults = {
     "last_voice_input": "",
     "pending_voice_input": "",
     "latest_audio": None,
-    "mic_key": 0
+    "mic_key": 0,
+    "mobile_sidebar_open": True
 }
 
 for k, v in defaults.items():
@@ -490,112 +482,194 @@ if st.session_state.page in PROTECTED_PAGES and not st.session_state.authenticat
     st.rerun()
 
 # =========================================================
-# SIDEBAR
+# MOBILE SIDEBAR TOGGLE (☰) — shown only on phones; on desktop the
+# sidebar is always open so this button stays hidden there
 # =========================================================
 if (st.session_state.authenticated and st.session_state.page in ["dashboard", "chat"]):
-    with st.sidebar:
-        if os.path.exists(logo_path):
-            st.image(logo_path, width=220)
-        st.markdown(f"### Welcome\n{st.session_state.user_name}")
-
-        # BACK BUTTON (only shown while inside an active chat session)
-        if st.session_state.page == "chat":
-            if st.button("⬅ Back", use_container_width=True, key="btn_sidebar_back"):
-                st.session_state.page = "dashboard"
-                st.rerun()
-
-        # NEW SESSION BUTTON
-        if st.button("New Session", use_container_width=True):
-            st.session_state.messages = []
-            st.session_state.session_id = ""
-            st.session_state.page = "dashboard"
+    with st.container(key="mobile_sidebar_toggle"):
+        toggle_label = "✕ Close Menu" if st.session_state.mobile_sidebar_open else "☰ Menu"
+        if st.button(toggle_label, key="btn_mobile_sidebar_toggle"):
+            st.session_state.mobile_sidebar_open = not st.session_state.mobile_sidebar_open
             st.rerun()
- 
-        st.markdown("---")
-        st.markdown("## Chat History")
- 
-        try:
-            sessions = get_user_sessions(st.session_state.user_id)
-            if sessions:
-                for s in sessions:
-                    title = s.get("title", "New Session")
-                    display_title = title if len(title) <= 28 else title[:28] + "..."
-                    
-                    c1, c2 = st.columns([8, 3], gap="small")
-                    with c1:
-                        if st.button(display_title, key=f"load_{s['session_id']}", use_container_width=True, help=title):
-                            history = get_session_conversation(s["session_id"], st.session_state.user_id)
-                            st.session_state.messages = []
-                            for turn in history:
-                                st.session_state.messages.append({"role": "user", "content": turn["salesperson"]})
-                                st.session_state.messages.append({"role": "assistant", "content": turn["student"]})
-                            st.session_state.session_id = s["session_id"]
-                            st.session_state.page = "chat"
-                            st.rerun()
-                    with c2:
-                        with st.popover("⋮", use_container_width=True):
-                            new_name = st.text_input(
-                                "Rename",
-                                value=title,
-                                key=f"rename_input_{s['session_id']}"
-                            )
-                            if st.button("Save", key=f"save_{s['session_id']}", use_container_width=True):
-                                try:
-                                    rename_chat_session(s["session_id"], new_name)
-                                    st.session_state[f"popover_open_{s['session_id']}"] = False
-                                    st.rerun()
-                                except Exception as e:
-                                    st.error(f"Rename Error: {e}")
-                                    
+
+    if st.session_state.mobile_sidebar_open:
+        st.markdown("""
+        <style>
+        @media (min-width: 769px) {
+            div[class*="st-key-mobile_sidebar_toggle"] { display: none !important; }
+        }
+        @media (max-width: 768px) {
+            div[class*="st-key-mobile_sidebar_toggle"] {
+                position: fixed !important;
+                top: 8px !important;
+                right: 8px !important;
+                z-index: 100000 !important;
+                width: auto !important;
+            }
+            div[class*="st-key-mobile_sidebar_toggle"] button {
+                background: rgba(79,172,254,0.95) !important;
+                color: white !important;
+                border-radius: 8px !important;
+                font-weight: 700 !important;
+                padding: 6px 14px !important;
+            }
+            section[data-testid="stSidebar"] {
+                display: block !important;
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                height: 100vh !important;
+                width: 85vw !important;
+                max-width: 320px !important;
+                z-index: 99999 !important;
+                overflow-y: auto !important;
+                box-shadow: 4px 0 20px rgba(0,0,0,0.6) !important;
+            }
+        }
+        </style>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <style>
+        @media (min-width: 769px) {
+            div[class*="st-key-mobile_sidebar_toggle"] { display: none !important; }
+        }
+        @media (max-width: 768px) {
+            div[class*="st-key-mobile_sidebar_toggle"] {
+                position: fixed !important;
+                top: 8px !important;
+                right: 8px !important;
+                z-index: 100000 !important;
+                width: auto !important;
+            }
+            div[class*="st-key-mobile_sidebar_toggle"] button {
+                background: rgba(79,172,254,0.95) !important;
+                color: white !important;
+                border-radius: 8px !important;
+                font-weight: 700 !important;
+                padding: 6px 14px !important;
+            }
+            section[data-testid="stSidebar"] {
+                display: none !important;
+            }
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+# =========================================================
+# SIDEBAR
+# =========================================================
+def render_sidebar_content(key_suffix=""):
+    if os.path.exists(logo_path):
+        st.image(logo_path, width=220)
+    st.markdown(f"### Welcome\n{st.session_state.user_name}")
+
+    # BACK BUTTON (only shown while inside an active chat session)
+    if st.session_state.page == "chat":
+        if st.button("⬅ Back", use_container_width=True, key=f"btn_sidebar_back{key_suffix}"):
+            st.session_state.page = "dashboard"
+            st.session_state.mobile_sidebar_open = False
+            st.rerun()
+
+    # NEW SESSION BUTTON
+    if st.button("New Session", use_container_width=True, key=f"btn_new_session{key_suffix}"):
+        st.session_state.messages = []
+        st.session_state.session_id = ""
+        st.session_state.page = "dashboard"
+        st.session_state.mobile_sidebar_open = False
+        st.rerun()
+
+    st.markdown("---")
+    st.markdown("## Chat History")
+
+    try:
+        sessions = get_user_sessions(st.session_state.user_id)
+        if sessions:
+            for s in sessions:
+                title = s.get("title", "New Session")
+                display_title = title if len(title) <= 28 else title[:28] + "..."
+
+                c1, c2 = st.columns([8, 3], gap="small")
+                with c1:
+                    if st.button(display_title, key=f"load_{s['session_id']}{key_suffix}", use_container_width=True, help=title):
+                        history = get_session_conversation(s["session_id"], st.session_state.user_id)
+                        st.session_state.messages = []
+                        for turn in history:
+                            st.session_state.messages.append({"role": "user", "content": turn["salesperson"]})
+                            st.session_state.messages.append({"role": "assistant", "content": turn["student"]})
+                        st.session_state.session_id = s["session_id"]
+                        st.session_state.page = "chat"
+                        st.session_state.mobile_sidebar_open = False
+                        st.rerun()
+                with c2:
+                    with st.popover("⋮", use_container_width=True):
+                        new_name = st.text_input(
+                            "Rename",
+                            value=title,
+                            key=f"rename_input_{s['session_id']}{key_suffix}"
+                        )
+                        if st.button("Save", key=f"save_{s['session_id']}{key_suffix}", use_container_width=True):
+                            try:
+                                rename_chat_session(s["session_id"], new_name)
+                                st.session_state[f"popover_open_{s['session_id']}"] = False
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"Rename Error: {e}")
+
                             st.markdown("---")
 
-                            # confirm state per session
-                            confirm_key = f"confirm_delete_{s['session_id']}"
-                            if not st.session_state.get(confirm_key):
-                                if st.button("Delete", key=f"delete_{s['session_id']}", use_container_width=True):
-                                    st.session_state[confirm_key] = True
-                                    st.rerun()
-                            else:
-                                st.warning("Delete this chat?")
-                                col_y, col_n = st.columns(2)
-                                with col_y:
-                                    if st.button("Yes", key=f"yes_{s['session_id']}", use_container_width=True):
-                                        try:
-                                            delete_chat_session(s["session_id"], st.session_state.user_id)
-                                            st.session_state[confirm_key] = False
-                                            if st.session_state.session_id == s["session_id"]:
-                                                st.session_state.messages = []
-                                                st.session_state.session_id = ""
-                                            st.rerun()
-                                        except Exception as e:
-                                            st.error(f"Delete Error: {e}")
-                                with col_n:
-                                    if st.button("No", key=f"no_{s['session_id']}", use_container_width=True):
+                        # confirm state per session
+                        confirm_key = f"confirm_delete_{s['session_id']}"
+                        if not st.session_state.get(confirm_key):
+                            if st.button("Delete", key=f"delete_{s['session_id']}{key_suffix}", use_container_width=True):
+                                st.session_state[confirm_key] = True
+                                st.rerun()
+                        else:
+                            st.warning("Delete this chat?")
+                            col_y, col_n = st.columns(2)
+                            with col_y:
+                                if st.button("Yes", key=f"yes_{s['session_id']}{key_suffix}", use_container_width=True):
+                                    try:
+                                        delete_chat_session(s["session_id"], st.session_state.user_id)
                                         st.session_state[confirm_key] = False
+                                        if st.session_state.session_id == s["session_id"]:
+                                            st.session_state.messages = []
+                                            st.session_state.session_id = ""
                                         st.rerun()
+                                    except Exception as e:
+                                        st.error(f"Delete Error: {e}")
+                            with col_n:
+                                if st.button("No", key=f"no_{s['session_id']}{key_suffix}", use_container_width=True):
+                                    st.session_state[confirm_key] = False
+                                    st.rerun()
 
-            else:
-                st.info("No chats yet.")
-        except Exception as e:
-            st.error(f"History Error: {e}")
- 
-        st.markdown("---")
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("Back to Home", use_container_width=True):
-                st.session_state.authenticated = False
-                st.session_state.user_name = ""
-                st.session_state.user_id = None
-                st.session_state.page = "landing"
-                st.rerun()
-        with col2:
-            if st.button("Logout", use_container_width=True):
-                st.session_state.authenticated = False
-                st.session_state.user_name = ""
-                st.session_state.user_id = None
-                st.session_state.page = "landing"
-                st.rerun()
-        
+        else:
+            st.info("No chats yet.")
+    except Exception as e:
+        st.error(f"History Error: {e}")
+
+    st.markdown("---")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Back to Home", use_container_width=True, key=f"btn_back_home{key_suffix}"):
+            st.session_state.authenticated = False
+            st.session_state.user_name = ""
+            st.session_state.user_id = None
+            st.session_state.page = "landing"
+            st.rerun()
+    with col2:
+        if st.button("Logout", use_container_width=True, key=f"btn_logout{key_suffix}"):
+            st.session_state.authenticated = False
+            st.session_state.user_name = ""
+            st.session_state.user_id = None
+            st.session_state.page = "landing"
+            st.rerun()
+
+
+if (st.session_state.authenticated and st.session_state.page in ["dashboard", "chat"]):
+    with st.sidebar:
+        render_sidebar_content()
+
 # ========================================================
 # LANDING PAGE
 # =========================================================
