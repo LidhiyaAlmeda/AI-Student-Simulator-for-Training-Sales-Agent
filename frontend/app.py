@@ -527,6 +527,7 @@ if (st.session_state.authenticated and st.session_state.page in ["dashboard", "c
                 z-index: 99999 !important;
                 overflow-y: auto !important;
                 box-shadow: 4px 0 20px rgba(0,0,0,0.6) !important;
+                background-color: #0b1220 !important;
             }
         }
         </style>
