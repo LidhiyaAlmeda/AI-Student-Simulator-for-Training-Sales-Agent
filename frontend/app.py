@@ -1,4 +1,3 @@
-
 import requests
 import os
 import sys
@@ -513,11 +512,15 @@ if (st.session_state.authenticated and st.session_state.page in ["dashboard", "c
                 font-weight: 700 !important;
                 padding: 6px 14px !important;
             }
-            section[data-testid="stSidebar"] {
+            section[data-testid="stSidebar"],
+            section[data-testid="stSidebar"][aria-expanded="false"],
+            section[data-testid="stSidebar"][aria-expanded="true"] {
                 display: block !important;
+                visibility: visible !important;
                 position: fixed !important;
                 top: 0 !important;
                 left: 0 !important;
+                transform: translateX(0) !important;
                 height: 100vh !important;
                 width: 85vw !important;
                 max-width: 320px !important;
@@ -549,8 +552,20 @@ if (st.session_state.authenticated and st.session_state.page in ["dashboard", "c
                 font-weight: 700 !important;
                 padding: 6px 14px !important;
             }
-            section[data-testid="stSidebar"] {
-                display: none !important;
+            section[data-testid="stSidebar"],
+            section[data-testid="stSidebar"][aria-expanded="false"],
+            section[data-testid="stSidebar"][aria-expanded="true"] {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                transform: translateX(-100%) !important;
+                visibility: hidden !important;
+                height: 100vh !important;
+                width: 85vw !important;
+                max-width: 320px !important;
+                z-index: 99999 !important;
+                overflow-y: auto !important;
+                box-shadow: none !important;
             }
         }
         </style>
