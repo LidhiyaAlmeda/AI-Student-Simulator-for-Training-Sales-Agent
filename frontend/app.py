@@ -1190,21 +1190,19 @@ elif st.session_state.page == "chat":
         min-width: 0 !important;
     }
     @media (max-width: 768px) {
-        div[class*="st-key-chat_input_row"] div[data-testid="stHorizontalBlock"] {
-            gap: 8px !important;
-        }
-        div[class*="st-key-chat_input_row"] div[data-testid="column"] {
-            flex-shrink: 0 !important;
-        }
-        div[class*="st-key-chat_input_row"] div[data-testid="stCustomComponentV1"] {
-            margin-left: 4px !important;
-            position: relative !important;
-            z-index: 1 !important;
-        }
-        div[class*="st-key-chat_input_row"] div[data-testid="stFormSubmitButton"] button {
-            position: relative !important;
-            z-index: 2 !important;
-        }
+         div[class*="st-key-chat_input_row"] > div > div[data-testid="stHorizontalBlock"] {
+             flex-wrap: wrap !important;
+          }
+          div[class*="st-key-chat_input_row"] > div > div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:first-child {
+              flex: 1 1 100% !important;
+              max-width: 100% !important;
+           }
+           div[class*="st-key-mic_button_wrap"] {
+               display: flex !important;
+               justify-content: center !important;
+               width: 100% !important;
+               margin-top: 6px !important;
+            }
     }
     </style>
     """, unsafe_allow_html=True)
@@ -1229,16 +1227,17 @@ elif st.session_state.page == "chat":
                     submitted = st.form_submit_button("➤", use_container_width=True)
 
         with mic_col:
-            audio_bytes = audio_recorder(
-                text="",
-                pause_threshold=2.5,
-                sample_rate=16000,
-                recording_color="#4facfe",
-                neutral_color="#4facfe",
-                icon_name="microphone",
-                icon_size="1x",
-                key=f"mic_{st.session_state.mic_key}"
-            )
+            with st.container(key="mic_button_wrap"):
+                audio_bytes = audio_recorder(
+                    text="",
+                    pause_threshold=2.5,
+                    sample_rate=16000,
+                    recording_color="#4facfe",
+                    neutral_color="#4facfe",
+                    icon_name="microphone",
+                    icon_size="1x",
+                    key=f"mic_{st.session_state.mic_key}"
+                )
 
     audio_text = None
     if audio_bytes and len(audio_bytes) > 1000:
