@@ -1190,13 +1190,20 @@ elif st.session_state.page == "chat":
         min-width: 0 !important;
     }
     @media (max-width: 768px) {
-        div[class*="st-key-chat_input_row"] input[type="text"] {
-            font-size: 14px !important;
-            padding: 8px !important;
+        div[class*="st-key-chat_input_row"] div[data-testid="stHorizontalBlock"] {
+            gap: 8px !important;
+        }
+        div[class*="st-key-chat_input_row"] div[data-testid="column"] {
+            flex-shrink: 0 !important;
+        }
+        div[class*="st-key-chat_input_row"] div[data-testid="stCustomComponentV1"] {
+            margin-left: 4px !important;
+            position: relative !important;
+            z-index: 1 !important;
         }
         div[class*="st-key-chat_input_row"] div[data-testid="stFormSubmitButton"] button {
-            font-size: 14px !important;
-            padding: 0 !important;
+            position: relative !important;
+            z-index: 2 !important;
         }
     }
     </style>
