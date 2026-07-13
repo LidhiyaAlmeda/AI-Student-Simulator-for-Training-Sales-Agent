@@ -665,21 +665,18 @@ def render_sidebar_content(key_suffix=""):
         st.error(f"History Error: {e}")
 
     st.markdown("---")
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("Back to Home", use_container_width=True, key=f"btn_back_home{key_suffix}"):
-            st.session_state.authenticated = False
-            st.session_state.user_name = ""
-            st.session_state.user_id = None
-            st.session_state.page = "landing"
-            st.rerun()
-    with col2:
-        if st.button("Logout", use_container_width=True, key=f"btn_logout{key_suffix}"):
-            st.session_state.authenticated = False
-            st.session_state.user_name = ""
-            st.session_state.user_id = None
-            st.session_state.page = "landing"
-            st.rerun()
+    if st.button("Back to Home", use_container_width=True, key=f"btn_back_home{key_suffix}"):
+        st.session_state.authenticated = False
+        st.session_state.user_name = ""
+        st.session_state.user_id = None
+        st.session_state.page = "landing"
+        st.rerun()
+    if st.button("Logout", use_container_width=True, key=f"btn_logout{key_suffix}"):
+        st.session_state.authenticated = False
+        st.session_state.user_name = ""
+        st.session_state.user_id = None
+        st.session_state.page = "landing"
+        st.rerun()
 
 
 if (st.session_state.authenticated and st.session_state.page in ["dashboard", "chat"]):
